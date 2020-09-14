@@ -13,11 +13,11 @@ struct FMaterialInfo
 public:
 	UMaterialInstance* mat;
 
-	FString matName;
+	FString paramName;
 
 	float scalarValue;
 
-	FVector vectorValue;
+	FLinearColor vectorValue;
 
 };
 
@@ -48,6 +48,11 @@ private:
 
 	TSharedRef<SHorizontalBox> GetScalarParamSlot(FMaterialInfo* info);
 
+	TSharedRef<SHorizontalBox> GetVectorParamSlot(FMaterialInfo* info);
+
+
+	FReply TestSaveData();
+
 private:
 	FLinearColor CachedColor = FLinearColor(1.0, 0.1, 0.1, 1.0);
 
@@ -62,7 +67,7 @@ private:
 		TMap<FString, FMaterialInfo*> ScalarParamsPair;
 
 	UPROPERTY()
-		TMap<FString, FVector> VectorParamsPair;
+		TMap<FString, FMaterialInfo*> VectorParamsPair;
 
 
 };

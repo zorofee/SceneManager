@@ -8,39 +8,13 @@
 #include "ToolMenus.h"
 #include "Widgets/Input/SSearchBox.h"
 #include "Widgets/Input/SEditableTextBox.h"
-#include "SMaterialGroupWidget.h"
+
+
+#include "Kismet/GameplayStatics.h"
+#include "SceneManagerSaveGame.h"
 
 #define LOCTEXT_NAMESPACE "FSceneManagerModule"
 
-
-
-void SMaterialAssetEntry::Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroup>& InItem)
-{
-	ChildSlot
-	[
-		SNew(SBorder)
-		[
-			SNew(SVerticalBox)
-
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0,10,0,10)
-			[
-				SNew(STextBlock)
-				.TextStyle(FEditorStyle::Get(), "PlacementBrowser.Tab.Text")
-				.Text(FText::FromString(InItem->GroupName))
-				
-			]
-
-			+ SVerticalBox::Slot()
-			.VAlign(VAlign_Center)
-			.Padding(2, 0, 4, 0)
-			[
-				SNew(SMaterialGroupWidget)
-			]
-		]
-	];
-}
 
 
 void SSceneManagerTools::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
@@ -101,19 +75,6 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 		.Thickness(FVector2D(9.0f, 9.0f));
 
 
-
-	TSharedPtr<FMaterialGroup> Group0 = MakeShareable(new FMaterialGroup());
-	Group0->GroupName = FString::Printf(TEXT("Stone"));
-	FilteredItems.Emplace(Group0);
-
-	TSharedPtr<FMaterialGroup> Group1 = MakeShareable(new FMaterialGroup());
-	Group1->GroupName = FString::Printf(TEXT("Grass"));
-	FilteredItems.Emplace(Group1);
-
-	TSharedPtr<FMaterialGroup> Group2 = MakeShareable(new FMaterialGroup());
-	Group2->GroupName = FString::Printf(TEXT("Tree"));
-	FilteredItems.Emplace(Group2);
-
 	ChildSlot
 	[
 		SNew(SVerticalBox)
@@ -159,9 +120,16 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 						.AutoWidth()
 						[
 							SNew(SButton)
-							.Text(FText::FromString(TEXT("+")))
+							.Text(FText::FromString(TEXT("TestSaveData")))
+							.OnClicked(this, &SSceneManagerTools::TestSaveData)
 						]
-
+						+ SHorizontalBox::Slot()
+						.AutoWidth()
+						[
+							SNew(SButton)
+							.Text(FText::FromString(TEXT("TestReadData")))
+							.OnClicked(this, &SSceneManagerTools::TestReadData)
+						]
 					]
 					
 					//层名称
@@ -185,14 +153,14 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 					]
 
 
+					//材质管理面板
 					+ SVerticalBox::Slot()
 					[
 						SAssignNew(LevelMaterialContent, SBox)
 						.Visibility(EVisibility::Visible)
 						[
 							SNew(SHorizontalBox)
-
-							//材质球
+			
 							+ SHorizontalBox::Slot()
 							[
 								SNew(SVerticalBox)
@@ -204,6 +172,26 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 									.ListItemsSource(&FilteredItems)
 									.OnGenerateRow(this, &SSceneManagerTools::OnGenerateWidgetForItem)
 									.ExternalScrollbar(ScrollBar)
+								]
+
+								+SVerticalBox::Slot()
+								.AutoHeight()
+								[
+									SNew(SHorizontalBox)
+									+SHorizontalBox::Slot()
+									.AutoWidth()
+									[
+										SNew(SButton)
+										.Text(FText::FromString("+"))
+										.OnClicked(this,&SSceneManagerTools::OnAddGroupNameButtonClicked)
+									]
+									
+									+SHorizontalBox::Slot()
+									.AutoWidth()
+									[
+										SAssignNew(GroupNameText,SEditableTextBox)
+										.HintText(FText::FromString("Add new group name"))
+									]
 								]
 							]
 
@@ -252,7 +240,7 @@ TSharedRef<ITableRow> SSceneManagerTools::OnGenerateWidgetForItem(TSharedPtr<FMa
 {
 	return SNew(STableRow<TSharedPtr<FMaterialGroup>>, OwnerTable)
 		[
-			SNew(SMaterialAssetEntry, InItem.ToSharedRef())
+			SNew(SMaterialGroupEntry, InItem.ToSharedRef())
 			//.HighlightText(this, &SSceneManagerTools::GetHighlightText)
 		];
 }
@@ -358,5 +346,54 @@ void SSceneManagerTools::UpdateCategoryContent()
 	}
 	
 }
+
+
+FReply SSceneManagerTools::OnAddGroupNameButtonClicked()
+{
+	TSharedPtr<FMaterialGroup> Group = MakeShareable(new FMaterialGroup());
+	Group->GroupName = GroupNameText->GetText().ToString();
+	FilteredItems.Emplace(Group);
+
+	ListView->RequestListRefresh();
+
+	return FReply::Handled();
+}
+
+
+FReply SSceneManagerTools::TestSaveData()
+{
+	USceneManagerSaveGame* saveGame = Cast<USceneManagerSaveGame>(UGameplayStatics::CreateSaveGameObject(USceneManagerSaveGame::StaticClass()));
+	saveGame->TestName = FString::Printf(TEXT("testtttt"));
+
+
+	FMatData matData;
+	matData.Name = FString::Printf(TEXT("TestMatData"));
+	matData.ScalarParams.Emplace(1.34);
+	matData.VectorParams.Emplace(FVector(1, 2, 3));
+
+	FGroupData groupData;
+	groupData.Name = FString::Printf(TEXT("TestGroupData"));
+	groupData.MatList.Emplace(matData);
+
+	FPlanData planData;
+	planData.Name = FString::Printf(TEXT("TestPlanData"));
+	planData.GroupList.Emplace(groupData);
+
+	saveGame->PlanList.Emplace(planData);
+
+	UGameplayStatics::SaveGameToSlot(saveGame, TEXT("TestSlot"), 0);
+	UE_LOG(LogTemp, Warning, TEXT("TestSaveData %s  , plan data num is %d"), *saveGame->TestName,saveGame->PlanList.Num());
+
+	return FReply::Handled();
+}
+
+FReply SSceneManagerTools::TestReadData()
+{
+	USceneManagerSaveGame* saveGame = Cast<USceneManagerSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("TestSlot"), 0));
+	UE_LOG(LogTemp, Warning, TEXT("Get data Plan: %s , mat data name : %s ,mat path is %s"),*saveGame->PlanList[0].Name, *saveGame->PlanList[0].GroupList[0].MatList[0].Name, *saveGame->PlanList[0].GroupList[0].MatList[0].MatPath);
+
+	return FReply::Handled();
+}
+
 #undef LOCTEXT_NAMESPACE
 

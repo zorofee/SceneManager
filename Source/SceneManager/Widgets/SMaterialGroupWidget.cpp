@@ -2,42 +2,70 @@
 
 
 #include "SMaterialGroupWidget.h"
-#include "SMaterialGroupItemWidget.h"
 
-void SMaterialGroupEntry::Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroupItem>& InItem)
+void SMaterialGroupEntry::Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroup>& InItem)
 {
 	ChildSlot
-	[
-		SNew(SBorder)
 		[
-			SNew(SMaterialGroupItemWidget)
+			SNew(SBorder)
+			[
+				SNew(SVerticalBox)
+
+				+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(0, 10, 0, 10)
+		[
+			SNew(STextBlock)
+			.TextStyle(FEditorStyle::Get(), "PlacementBrowser.Tab.Text")
+		.Text(FText::FromString(InItem->GroupName))
+
 		]
-	];
+
+	+ SVerticalBox::Slot()
+		.VAlign(VAlign_Center)
+		.Padding(2, 0, 4, 0)
+		[
+			SNew(SMaterialGroupWidget)
+		]
+			]
+		];
 }
+
 
 void SMaterialGroupWidget::Construct(const FArguments& InArgs)
 {
-
-	for (size_t i = 0; i < 5; i++)
-	{
-		TSharedPtr<FMaterialGroupItem> item1 = MakeShareable(new FMaterialGroupItem());
-		FilteredItems.Emplace(item1);
-	}
+	//TEST ITEM
+	//TSharedPtr<FMaterialGroupItem> item1 = MakeShareable(new FMaterialGroupItem());
+	//FilteredItems.Emplace(item1);
 
 	ChildSlot
 	[
 		SNew(SBorder)
 		.BorderImage(FEditorStyle::GetBrush("ToolPanel.DarkGroupBorder"))
 		[
-			SNew(SHorizontalBox)
+			SNew(SVerticalBox)
 
 			//material group list item
-			+ SHorizontalBox::Slot()
+			+ SVerticalBox::Slot()
 			[
 				SAssignNew(ListView, SListView<TSharedPtr<FMaterialGroupItem>>)
 				.ListItemsSource(&FilteredItems)
 				.OnGenerateRow(this, &SMaterialGroupWidget::OnGenerateWidgetForItem)
 			]
+
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			[
+				SNew(SHorizontalBox)
+				+SHorizontalBox::Slot()
+				.AutoWidth()
+				[
+					SNew(SButton)
+					.OnClicked(this, &SMaterialGroupWidget::OnAddGroupItemButtonClicked)
+					.Text(FText::FromString(TEXT("+")))
+				]
+			]
+
 		]
 	];
 }
@@ -46,7 +74,15 @@ TSharedRef<ITableRow> SMaterialGroupWidget::OnGenerateWidgetForItem(TSharedPtr<F
 {
 	return SNew(STableRow<TSharedPtr<FMaterialGroupItem>>, OwnerTable)
 		[
-			SNew(SMaterialGroupEntry, InItem.ToSharedRef())
+			SNew(SMaterialGroupItemEntry, InItem.ToSharedRef())
 			//.HighlightText(this, &SSceneManagerTools::GetHighlightText)
 		];
+}
+
+FReply SMaterialGroupWidget::OnAddGroupItemButtonClicked()
+{
+	TSharedPtr<FMaterialGroupItem> newItem = MakeShareable(new FMaterialGroupItem());
+	FilteredItems.Emplace(newItem);
+	ListView->RequestListRefresh();
+	return FReply::Handled();
 }

@@ -6,6 +6,7 @@
 #include "Widgets/SCompoundWidget.h"
 #include "Layout/Visibility.h"
 #include "Widgets/SWidget.h"
+#include "SMaterialGroupWidget.h"
 
 /**
  * 
@@ -26,30 +27,8 @@ struct SceneCategoryInfo
 	FString TagMetaData;
 };
 
-struct FMaterialGroup
-{
-	FMaterialGroup() {}
-
-public:
-	FString GroupName;
-};
 
 
-class SMaterialAssetEntry : public SCompoundWidget
-{
-public:
-	SLATE_BEGIN_ARGS(SMaterialAssetEntry) {}
-
-	/** Highlight this text in the text block */
-	SLATE_ATTRIBUTE(FText, HighlightText)
-
-		SLATE_END_ARGS()
-
-		void Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroup>& InItem);
-
-	TSharedPtr<const FMaterialGroup> Item;
-
-};
 
 
 class SSceneManagerTools : public SCompoundWidget
@@ -76,6 +55,8 @@ public:
 
 	/** Array of filtered items to show in the list view */
 	TArray<TSharedPtr<FMaterialGroup>> FilteredItems;
+
+	TSharedPtr<SEditableTextBox> GroupNameText;
 
 	/** Generates a widget for the specified item */
 	TSharedRef<ITableRow> OnGenerateWidgetForItem(TSharedPtr<FMaterialGroup> InItem, const TSharedRef<STableViewBase>& OwnerTable);
@@ -104,11 +85,13 @@ private:
 	/** Gets the border image for the tab, this is the 'active' orange bar. */
 	const FSlateBrush* PlacementGroupBorderImage(FName CategoryName) const;
 
-
-
 	void UpdateCategoryContent();
 
-
+	FReply OnAddGroupNameButtonClicked();
 	
+	FReply TestSaveData();
+
+	FReply TestReadData();
+
 	
 };

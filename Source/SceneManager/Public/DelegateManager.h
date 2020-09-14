@@ -5,9 +5,10 @@
 #include "CoreMinimal.h"
 
 
+DECLARE_MULTICAST_DELEGATE_ThreeParams(OnMatScalarValueChanged, UMaterialInstance*,FString, float)
+DECLARE_MULTICAST_DELEGATE_OneParam(OnAddMatGroup, FString)
+DECLARE_MULTICAST_DELEGATE_OneParam(OnAddMatGroupItem, FString)
 
-
-DECLARE_MULTICAST_DELEGATE_TwoParams(OnMatScalarValueChangedEvent, FString, float)
 /**
  * 
  */
@@ -22,5 +23,9 @@ private:
 	static DelegateManager* instance;
 
 public:
-	OnMatScalarValueChangedEvent OnMatScalarValueChanged;
+	OnMatScalarValueChanged OnMatScalarValueChanged;
+
+	OnAddMatGroup OnAddMatGroup;
+
+	OnAddMatGroupItem OnAddMatGroupItem;
 };

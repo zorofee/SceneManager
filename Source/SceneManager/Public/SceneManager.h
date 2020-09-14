@@ -30,5 +30,5 @@ private:
 	TSharedPtr<class FUICommandList> PluginCommands;
 
 	UFUNCTION()
-	void TestDelegate(FString name ,float value);
+	void TestDelegate(UMaterialInstance* mat, FString name ,float value);
 };

@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "SMaterialGroupItemWidget.h"
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
 /**
@@ -9,10 +10,17 @@
  */
 
 
-struct FMaterialGroupItem
+
+
+struct FMaterialGroup
 {
-	FMaterialGroupItem() {}
+	FMaterialGroup() {}
+
+public:
+	FString GroupName;
 };
+
+
 
 
 class SMaterialGroupEntry : public SCompoundWidget
@@ -20,11 +28,14 @@ class SMaterialGroupEntry : public SCompoundWidget
 public:
 	SLATE_BEGIN_ARGS(SMaterialGroupEntry) {}
 
-	SLATE_END_ARGS()
+	/** Highlight this text in the text block */
+	SLATE_ATTRIBUTE(FText, HighlightText)
 
-	void Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroupItem>& InItem);
+		SLATE_END_ARGS()
 
-	TSharedPtr<const FMaterialGroupItem> Item;
+		void Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroup>& InItem);
+
+	TSharedPtr<const FMaterialGroup> Item;
 
 };
 
@@ -46,4 +57,6 @@ private:
 
 	/** Generates a widget for the specified item */
 	TSharedRef<ITableRow> OnGenerateWidgetForItem(TSharedPtr<FMaterialGroupItem> InItem, const TSharedRef<STableViewBase>& OwnerTable);
+
+	FReply OnAddGroupItemButtonClicked();
 };

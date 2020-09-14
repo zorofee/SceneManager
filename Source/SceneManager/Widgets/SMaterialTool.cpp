@@ -9,6 +9,10 @@
 #include "Materials/MaterialInstance.h"
 
 
+#include "Kismet/GameplayStatics.h"
+#include "SceneManagerSaveGame.h"
+
+
 void SMaterialTool::Construct(const FArguments& InArgs)
 {
 	FDetailsViewArgs DetailsViewArgs(false, false, true, FDetailsViewArgs::HideNameArea, true);
@@ -28,7 +32,12 @@ void SMaterialTool::Construct(const FArguments& InArgs)
 		[
 			LevelMatView
 		]
-	
+		
+		+SVerticalBox::Slot()
+		[
+			SNew(SButton)
+			.OnClicked(this,&SMaterialTool::TestSaveData)
+		]
 
 		+ SVerticalBox::Slot()
 		.AutoHeight()
@@ -43,6 +52,14 @@ void SMaterialTool::OnFinishedChangingProperties(const FPropertyChangedEvent& In
 {
 	AnalysisMaterialParams();
 
+	for (TPair<FString, FMaterialInfo*> item : VectorParamsPair)
+	{
+		ParamContainer->AddSlot()
+			.AutoHeight()
+			[
+				GetVectorParamSlot(item.Value)
+			];
+	}
 
 	for (TPair<FString,FMaterialInfo*> item : ScalarParamsPair)
 	{
@@ -52,6 +69,7 @@ void SMaterialTool::OnFinishedChangingProperties(const FPropertyChangedEvent& In
 			GetScalarParamSlot(item.Value)
 		];
 	}
+
 }
 
 void SMaterialTool::AnalysisMaterialParams()
@@ -59,32 +77,49 @@ void SMaterialTool::AnalysisMaterialParams()
 	UMaterialInstance* Material = lms->material;
 	if (Material)
 	{
-		TArray<FMaterialParameterInfo> ScalarParameterInfo;
-		TArray<FGuid> ScalarParameterGuids;
+		TArray<FMaterialParameterInfo> ParameterInfo;
+		TArray<FGuid> ParameterGuids;
 		FString GroupName;
 		
 		//Get scalar parameters name and value
-		Material->GetAllScalarParameterInfo(ScalarParameterInfo, ScalarParameterGuids);
-		for (size_t i = 0; i < ScalarParameterInfo.Num(); i++)
+		Material->GetAllScalarParameterInfo(ParameterInfo, ParameterGuids);
+		for (size_t i = 0; i < ParameterInfo.Num(); i++)
 		{
 			FName groupName;
-			Material->GetGroupName(ScalarParameterInfo[i], groupName);
-			UE_LOG(LogTemp, Warning, TEXT("Group name is %s , %s"), *groupName.ToString(), *ScalarParameterInfo[i].Name.ToString());
+			Material->GetGroupName(ParameterInfo[i], groupName);
+			UE_LOG(LogTemp, Warning, TEXT("Group name is %s , %s"), *groupName.ToString(), *ParameterInfo[i].Name.ToString());
 			
 			GroupName = groupName.ToString();
 			if (GroupName.Equals(TEXT("LevelMaterial")))
 			{
 				FMaterialInfo* info = new FMaterialInfo();
 				info->mat = Material;
-				info->matName = ScalarParameterInfo[i].Name.ToString();
-				Material->GetScalarParameterValue(ScalarParameterInfo[i], info->scalarValue);
-				ScalarParamsPair.Emplace(info->matName, info);
+				info->paramName = ParameterInfo[i].Name.ToString();
+				Material->GetScalarParameterValue(ParameterInfo[i], info->scalarValue);
+				ScalarParamsPair.Emplace(info->paramName, info);
 			}
 		}
 
 		//Get vector parameters name and value
+		ParameterInfo.Empty();
+		ParameterGuids.Empty();
+		Material->GetAllVectorParameterInfo(ParameterInfo, ParameterGuids);
+		for (size_t i = 0; i < ParameterInfo.Num(); i++)
+		{
+			FName groupName;
+			Material->GetGroupName(ParameterInfo[i], groupName);
+			UE_LOG(LogTemp, Warning, TEXT("Group name is %s , %s"), *groupName.ToString(), *ParameterInfo[i].Name.ToString());
 
-
+			GroupName = groupName.ToString();
+			if (GroupName.Equals(TEXT("LevelMaterial")))
+			{
+				FMaterialInfo* info = new FMaterialInfo();
+				info->mat = Material;
+				info->paramName = ParameterInfo[i].Name.ToString();
+				Material->GetVectorParameterValue(ParameterInfo[i], info->vectorValue);
+				VectorParamsPair.Emplace(info->paramName, info);
+			}
+		}
 
 	}
 }
@@ -102,7 +137,7 @@ TSharedRef<SHorizontalBox> SMaterialTool::GetScalarParamSlot(FMaterialInfo* info
 		.VAlign(EVerticalAlignment::VAlign_Bottom)
 		[
 			SNew(STextBlock)
-			.Text(FText::FromString(info->matName))
+			.Text(FText::FromString(info->paramName))
 		]
 
 	+ SHorizontalBox::Slot()
@@ -130,17 +165,21 @@ TSharedRef<SHorizontalBox> SMaterialTool::GetScalarParamSlot(FMaterialInfo* info
 		];
 
 
+}
 
 
+TSharedRef<SHorizontalBox> SMaterialTool::GetVectorParamSlot(FMaterialInfo* info)
+{
+	return
+		SNew(SHorizontalBox)
 
-	//param2 color
-	/*+SHorizontalBox::Slot()
+	+SHorizontalBox::Slot()
 		.AutoWidth()
 		.HAlign(EHorizontalAlignment::HAlign_Center)
 		.VAlign(EVerticalAlignment::VAlign_Bottom)
 		[
 			SNew(STextBlock)
-			.Text(FText::FromString(TEXT("Param2")))
+			.Text(FText::FromString(info->paramName))
 		]
 
 	+ SHorizontalBox::Slot()
@@ -151,20 +190,19 @@ TSharedRef<SHorizontalBox> SMaterialTool::GetScalarParamSlot(FMaterialInfo* info
 		]
 
 
-	+SHorizontalBox::Slot()
+	+ SHorizontalBox::Slot()
+		.AutoWidth()
 		[
 			SAssignNew(ColorImage, SImage)
 			.ColorAndOpacity(FSlateColor(CachedColor))
-			.OnMouseButtonDown(this, &SMaterialTool::OnClickColorBlock)
-		]*/
+		.OnMouseButtonDown(this, &SMaterialTool::OnClickColorBlock)
+		];
 }
-
-
 
 void SMaterialTool::OnScalarValueChanged(float value,FMaterialInfo* info)
 {
-	UE_LOG(LogTemp, Warning, TEXT("%s %s ValueChanged %f"), *info->matName, *info->mat->GetName(), info->scalarValue);
-	DelegateManager::Get()->OnMatScalarValueChanged.Broadcast(info->matName,info->scalarValue);
+	UE_LOG(LogTemp, Warning, TEXT("%s %s ValueChanged %f"), *info->paramName, *info->mat->GetName(), info->scalarValue);
+	DelegateManager::Get()->OnMatScalarValueChanged.Broadcast(info->mat,info->paramName,info->scalarValue);
 
 }
 
@@ -194,4 +232,35 @@ void SMaterialTool::OnSetColorFromColorPicker(FLinearColor NewColor)
 	UE_LOG(LogTemp,Warning,TEXT("OnSetColorFromColorPicker %s"),*NewColor.ToString());
 	CachedColor = NewColor;
 	ColorImage->SetColorAndOpacity(CachedColor);
+}
+
+
+
+
+FReply SMaterialTool::TestSaveData()
+{
+	USceneManagerSaveGame* saveGame = Cast<USceneManagerSaveGame>(UGameplayStatics::CreateSaveGameObject(USceneManagerSaveGame::StaticClass()));
+	saveGame->TestName = FString::Printf(TEXT("testtttt"));
+
+
+	FMatData matData;
+	matData.Name = FString::Printf(TEXT("TestMatData2222"));
+	matData.MatPath = lms->material->GetPathName();
+	matData.ScalarParams.Emplace(1.34);
+	matData.VectorParams.Emplace(FVector(1, 2, 3));
+
+	FGroupData groupData;
+	groupData.Name = FString::Printf(TEXT("TestGroupData2222"));
+	groupData.MatList.Emplace(matData);
+
+	FPlanData planData;
+	planData.Name = FString::Printf(TEXT("TestPlanData2222"));
+	planData.GroupList.Emplace(groupData);
+
+	saveGame->PlanList.Emplace(planData);
+
+	UGameplayStatics::SaveGameToSlot(saveGame, TEXT("TestSlot"), 0);
+	UE_LOG(LogTemp, Warning, TEXT("TestSaveData %s  , plan data num is %d"), *saveGame->TestName, saveGame->PlanList.Num());
+
+	return FReply::Handled();
 }

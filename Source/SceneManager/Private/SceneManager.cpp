@@ -106,7 +106,7 @@ void FSceneManagerModule::RegisterMenus()
 	}
 }
 
-void FSceneManagerModule::TestDelegate(FString name, float value)
+void FSceneManagerModule::TestDelegate(UMaterialInstance* mat,FString name, float value)
 {
 	UE_LOG(LogTemp, Warning, TEXT("TestDelegate %s %f"), *name, value);
 }

@@ -7,6 +7,26 @@
 /**
  * 
  */
+
+struct FMaterialGroupItem
+{
+	FMaterialGroupItem() {}
+};
+
+
+class SMaterialGroupItemEntry : public SCompoundWidget
+{
+public:
+	SLATE_BEGIN_ARGS(SMaterialGroupItemEntry) {}
+
+	SLATE_END_ARGS()
+
+		void Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroupItem>& InItem);
+
+	TSharedPtr<const FMaterialGroupItem> Item;
+
+};
+
 class SCENEMANAGER_API SMaterialGroupItemWidget : public SCompoundWidget
 {
 public:

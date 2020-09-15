@@ -46,7 +46,7 @@ void SMaterialGroupWidget::Construct(const FArguments& InArgs, const TSharedPtr<
 			//material group list item
 			+ SVerticalBox::Slot()
 			[
-				SAssignNew(ListView, SListView<TSharedPtr<FMaterialGroupItem>>)
+				SAssignNew(ListView, SListView<TSharedPtr<FMaterialInfo>>)
 				.ListItemsSource(&FilteredItems)
 				.OnGenerateRow(this, &SMaterialGroupWidget::OnGenerateWidgetForItem)
 			]
@@ -68,9 +68,9 @@ void SMaterialGroupWidget::Construct(const FArguments& InArgs, const TSharedPtr<
 	];
 }
 
-TSharedRef<ITableRow> SMaterialGroupWidget::OnGenerateWidgetForItem(TSharedPtr<FMaterialGroupItem> InItem, const TSharedRef<STableViewBase>& OwnerTable)
+TSharedRef<ITableRow> SMaterialGroupWidget::OnGenerateWidgetForItem(TSharedPtr<FMaterialInfo> InItem, const TSharedRef<STableViewBase>& OwnerTable)
 {
-	return SNew(STableRow<TSharedPtr<FMaterialGroupItem>>, OwnerTable)
+	return SNew(STableRow<TSharedPtr<FMaterialInfo>>, OwnerTable)
 		[
 			SNew(SMaterialGroupItemEntry, InItem.ToSharedRef())
 			//.HighlightText(this, &SSceneManagerTools::GetHighlightText)
@@ -79,7 +79,7 @@ TSharedRef<ITableRow> SMaterialGroupWidget::OnGenerateWidgetForItem(TSharedPtr<F
 
 FReply SMaterialGroupWidget::OnAddGroupItemButtonClicked()
 {
-	TSharedPtr<FMaterialGroupItem> newItem = MakeShareable(new FMaterialGroupItem());
+	TSharedPtr<FMaterialInfo> newItem = MakeShareable(new FMaterialInfo());
 	newItem->ParentGroup = m_GroupInfo.GroupName;
 	newItem->ParentPlan = m_GroupInfo.Parent;
 	FilteredItems.Emplace(newItem);

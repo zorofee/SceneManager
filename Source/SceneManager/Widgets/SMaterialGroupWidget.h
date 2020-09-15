@@ -45,13 +45,13 @@ public:
 
 private:
 	/** List view that shows placeable items */
-	TSharedPtr<SListView<TSharedPtr<FMaterialGroupItem>>> ListView;
+	TSharedPtr<SListView<TSharedPtr<FMaterialInfo>>> ListView;
 
 	/** Array of filtered items to show in the list view */
-	TArray<TSharedPtr<FMaterialGroupItem>> FilteredItems;
+	TArray<TSharedPtr<FMaterialInfo>> FilteredItems;
 
 	/** Generates a widget for the specified item */
-	TSharedRef<ITableRow> OnGenerateWidgetForItem(TSharedPtr<FMaterialGroupItem> InItem, const TSharedRef<STableViewBase>& OwnerTable);
+	TSharedRef<ITableRow> OnGenerateWidgetForItem(TSharedPtr<FMaterialInfo> InItem, const TSharedRef<STableViewBase>& OwnerTable);
 
 	FReply OnAddGroupItemButtonClicked();
 

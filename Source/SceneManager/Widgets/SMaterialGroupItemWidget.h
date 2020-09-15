@@ -9,27 +9,20 @@
 #include "Widgets/SCompoundWidget.h"
 
 
-struct FMaterialGroupItem
+struct FMaterialInfo
 {
-public:
 	FString ParentPlan;
 	FString ParentGroup;
 	FString MatPath;
 };
 
 
-struct FMaterialInfo
+struct FParamInfo
 {
-public:
-
 	UMaterialInstance* mat;
-
 	FString paramName;
-
 	float scalarValue;
-
 	FLinearColor vectorValue;
-
 };
 
 
@@ -40,11 +33,10 @@ public:
 
 	SLATE_END_ARGS()
 
-		void Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroupItem>& InItem);
+		void Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialInfo>& InItem);
 
 
 };
-
 
 
 
@@ -54,7 +46,7 @@ public:
 	SLATE_BEGIN_ARGS(SMaterialGroupItemWidget) {}
 	SLATE_END_ARGS();
 
-	void Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroupItem>& InItem);
+	void Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialInfo>& InItem);
 
 private:
 	/*
@@ -64,7 +56,7 @@ private:
 
 	void OnFinishedChangingProperties(const FPropertyChangedEvent& InEvent);
 
-	void OnScalarValueChanged(float value, FMaterialInfo* info);
+	void OnScalarValueChanged(float value, FParamInfo* info);
 
 	FReply OnClickColorBlock(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
 
@@ -81,9 +73,9 @@ private:
 	FReply TestSaveData();
 
 
-	TSharedRef<SHorizontalBox> GetScalarParamSlot(FMaterialInfo* info);
+	TSharedRef<SHorizontalBox> GetScalarParamSlot(FParamInfo* info);
 
-	TSharedRef<SHorizontalBox> GetVectorParamSlot(FMaterialInfo* info);
+	TSharedRef<SHorizontalBox> GetVectorParamSlot(FParamInfo* info);
 
 
 
@@ -98,14 +90,12 @@ private:
 		ULevelMaterialSettings* lms;
 
 	UPROPERTY()
-		TMap<FString, FMaterialInfo*> ScalarParamsPair;
+		TMap<FString, FParamInfo*> ScalarParamsPair;
 
 	UPROPERTY()
-		TMap<FString, FMaterialInfo*> VectorParamsPair;
+		TMap<FString, FParamInfo*> VectorParamsPair;
 
 
-
-
-	FMaterialGroupItem m_GroupItemInfo;
+	FMaterialInfo m_MaterialInfo;
 
 };

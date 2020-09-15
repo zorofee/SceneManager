@@ -40,7 +40,7 @@ public:
 		FString parent;
 
 	UPROPERTY()
-		TArray<FMatData> MatList;
+		TMap<FString,FMatData> MatList;
 };
 
 USTRUCT()
@@ -52,7 +52,7 @@ public:
 		FString Name;
 	
 	UPROPERTY()
-		TArray<FGroupData> GroupList;
+		TMap<FString,FGroupData> GroupList;
 };
 
 
@@ -69,5 +69,8 @@ public:
 		FString TestName;
 
 	UPROPERTY()
-		TArray<FPlanData> PlanList;
+		TMap<FString,FPlanData> PlanList;
+
+
+
 };

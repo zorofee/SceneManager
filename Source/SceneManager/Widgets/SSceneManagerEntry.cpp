@@ -373,13 +373,13 @@ FReply SSceneManagerTools::TestSaveData()
 
 	FGroupData groupData;
 	groupData.Name = FString::Printf(TEXT("TestGroupData"));
-	groupData.MatList.Emplace(matData);
+	groupData.MatList.Emplace(TEXT("TestMat"),matData);
 
 	FPlanData planData;
 	planData.Name = FString::Printf(TEXT("TestPlanData"));
-	planData.GroupList.Emplace(groupData);
+	planData.GroupList.Emplace(TEXT("TestGroup"),groupData);
 
-	saveGame->PlanList.Emplace(planData);
+	saveGame->PlanList.Emplace(TEXT("TestPlan"),planData);
 
 	UGameplayStatics::SaveGameToSlot(saveGame, TEXT("TestSlot"), 0);
 	UE_LOG(LogTemp, Warning, TEXT("TestSaveData %s  , plan data num is %d"), *saveGame->TestName,saveGame->PlanList.Num());
@@ -390,7 +390,7 @@ FReply SSceneManagerTools::TestSaveData()
 FReply SSceneManagerTools::TestReadData()
 {
 	USceneManagerSaveGame* saveGame = Cast<USceneManagerSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("TestSlot"), 0));
-	UE_LOG(LogTemp, Warning, TEXT("Get data Plan: %s , mat data name : %s ,mat path is %s"),*saveGame->PlanList[0].Name, *saveGame->PlanList[0].GroupList[0].MatList[0].Name, *saveGame->PlanList[0].GroupList[0].MatList[0].MatPath);
+	UE_LOG(LogTemp, Warning, TEXT("Get data Plan: %s , mat data name : %s ,mat path is %s"),*saveGame->PlanList["TestPlan"].Name, *saveGame->PlanList["TestPlan"].GroupList["TestGroup"].MatList["TestMat"].Name, *saveGame->PlanList["TestPlan"].GroupList["TestGroup"].MatList["TestMat"].MatPath);
 
 	return FReply::Handled();
 }

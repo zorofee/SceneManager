@@ -16,6 +16,9 @@ public:
 		FString Name;
 
 	UPROPERTY()
+		FString parent;
+
+	UPROPERTY()
 		FString MatPath;
 	
 	UPROPERTY()
@@ -33,6 +36,9 @@ public:
 	UPROPERTY()
 		FString Name;
 	
+	UPROPERTY()
+		FString parent;
+
 	UPROPERTY()
 		TArray<FMatData> MatList;
 };

@@ -10,17 +10,15 @@
  */
 
 
-
-
 struct FMaterialGroup
 {
 	FMaterialGroup() {}
 
 public:
 	FString GroupName;
+
+	FString Parent;
 };
-
-
 
 
 class SMaterialGroupEntry : public SCompoundWidget
@@ -33,10 +31,7 @@ public:
 
 		SLATE_END_ARGS()
 
-		void Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroup>& InItem);
-
-	TSharedPtr<const FMaterialGroup> Item;
-
+		void Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroup>& GroupInfo);
 };
 
 
@@ -46,7 +41,7 @@ public:
 	SLATE_BEGIN_ARGS(SMaterialGroupWidget) {}
 	SLATE_END_ARGS();
 
-	void Construct(const FArguments& InArgs);
+	void Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroup>& GroupInfo);
 
 private:
 	/** List view that shows placeable items */
@@ -59,4 +54,9 @@ private:
 	TSharedRef<ITableRow> OnGenerateWidgetForItem(TSharedPtr<FMaterialGroupItem> InItem, const TSharedRef<STableViewBase>& OwnerTable);
 
 	FReply OnAddGroupItemButtonClicked();
+
+
+public:
+	FMaterialGroup m_GroupInfo;  //parent plan name;
+
 };

@@ -3,40 +3,38 @@
 
 #include "SMaterialGroupWidget.h"
 
-void SMaterialGroupEntry::Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroup>& InItem)
+void SMaterialGroupEntry::Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroup>& GroupInfo)
 {
 	ChildSlot
+	[
+		SNew(SBorder)
 		[
-			SNew(SBorder)
+			SNew(SVerticalBox)
+			
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			.Padding(0, 10, 0, 10)
 			[
-				SNew(SVerticalBox)
-
-				+ SVerticalBox::Slot()
-		.AutoHeight()
-		.Padding(0, 10, 0, 10)
-		[
-			SNew(STextBlock)
-			.TextStyle(FEditorStyle::Get(), "PlacementBrowser.Tab.Text")
-		.Text(FText::FromString(InItem->GroupName))
-
-		]
-
-	+ SVerticalBox::Slot()
-		.VAlign(VAlign_Center)
-		.Padding(2, 0, 4, 0)
-		[
-			SNew(SMaterialGroupWidget)
-		]
+				SNew(STextBlock)
+				.TextStyle(FEditorStyle::Get(), "PlacementBrowser.Tab.Text")
+				.Text(FText::FromString(GroupInfo->GroupName))
 			]
-		];
+
+			+ SVerticalBox::Slot()
+			.VAlign(VAlign_Center)
+			.Padding(2, 0, 4, 0)
+			[
+				SNew(SMaterialGroupWidget, GroupInfo)
+			]
+		]
+	];
 }
 
 
-void SMaterialGroupWidget::Construct(const FArguments& InArgs)
+void SMaterialGroupWidget::Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroup>& GroupInfo)
 {
-	//TEST ITEM
-	//TSharedPtr<FMaterialGroupItem> item1 = MakeShareable(new FMaterialGroupItem());
-	//FilteredItems.Emplace(item1);
+	m_GroupInfo.GroupName = GroupInfo.Get()->GroupName;
+	m_GroupInfo.Parent = GroupInfo.Get()->Parent;
 
 	ChildSlot
 	[
@@ -82,7 +80,12 @@ TSharedRef<ITableRow> SMaterialGroupWidget::OnGenerateWidgetForItem(TSharedPtr<F
 FReply SMaterialGroupWidget::OnAddGroupItemButtonClicked()
 {
 	TSharedPtr<FMaterialGroupItem> newItem = MakeShareable(new FMaterialGroupItem());
+	newItem->ParentGroup = m_GroupInfo.GroupName;
+	newItem->ParentPlan = m_GroupInfo.Parent;
 	FilteredItems.Emplace(newItem);
 	ListView->RequestListRefresh();
+
+
+	UE_LOG(LogTemp,Warning,TEXT("OnAddGroupItemButtonClicked %s"),*m_GroupInfo.Parent);
 	return FReply::Handled();
 }

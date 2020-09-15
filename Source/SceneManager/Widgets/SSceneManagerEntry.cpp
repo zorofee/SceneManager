@@ -169,7 +169,7 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 								+ SVerticalBox::Slot()
 								[
 									SAssignNew(ListView, SListView<TSharedPtr<FMaterialGroup>>)
-									.ListItemsSource(&FilteredItems)
+									.ListItemsSource(&MatGroupItems)
 									.OnGenerateRow(this, &SSceneManagerTools::OnGenerateWidgetForItem)
 									.ExternalScrollbar(ScrollBar)
 								]
@@ -239,10 +239,9 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 TSharedRef<ITableRow> SSceneManagerTools::OnGenerateWidgetForItem(TSharedPtr<FMaterialGroup> InItem, const TSharedRef<STableViewBase>& OwnerTable)
 {
 	return SNew(STableRow<TSharedPtr<FMaterialGroup>>, OwnerTable)
-		[
-			SNew(SMaterialGroupEntry, InItem.ToSharedRef())
-			//.HighlightText(this, &SSceneManagerTools::GetHighlightText)
-		];
+	[
+		SNew(SMaterialGroupEntry, InItem.ToSharedRef())
+	];
 }
 
 TSharedRef< SWidget > SSceneManagerTools::CreatePlacementGroupTab(const SceneCategoryInfo& Info)
@@ -352,12 +351,13 @@ FReply SSceneManagerTools::OnAddGroupNameButtonClicked()
 {
 	TSharedPtr<FMaterialGroup> Group = MakeShareable(new FMaterialGroup());
 	Group->GroupName = GroupNameText->GetText().ToString();
-	FilteredItems.Emplace(Group);
-
+	Group->Parent = FString::Printf(TEXT("RedPlan"));
+	MatGroupItems.Emplace(Group);
 	ListView->RequestListRefresh();
-
 	return FReply::Handled();
 }
+
+
 
 
 FReply SSceneManagerTools::TestSaveData()

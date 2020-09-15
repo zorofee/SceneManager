@@ -54,7 +54,7 @@ public:
 	TSharedPtr<SListView<TSharedPtr<FMaterialGroup>>> ListView;
 
 	/** Array of filtered items to show in the list view */
-	TArray<TSharedPtr<FMaterialGroup>> FilteredItems;
+	TArray<TSharedPtr<FMaterialGroup>> MatGroupItems;
 
 	TSharedPtr<SEditableTextBox> GroupNameText;
 

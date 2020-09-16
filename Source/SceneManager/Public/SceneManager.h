@@ -42,7 +42,9 @@ private:
 	void SetMatScalarParam(TSharedPtr<FMaterialInfo> matInfo);
 
 
+	void DeleteMatGroup(TSharedPtr<FMaterialGroupInfo> matInfo);
 	void DeleteMatInstance(TSharedPtr<FMaterialInfo> matInfo);
+	void ReplaceMatInstance(TSharedPtr<FMaterialInfo> matInfo,FString originPath);
 
 
 	void SaveGameData();

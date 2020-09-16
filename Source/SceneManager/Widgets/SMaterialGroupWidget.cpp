@@ -63,8 +63,19 @@ void SMaterialGroupWidget::Construct(const FArguments& InArgs, const TSharedPtr<
 					.Text(FText::FromString(TEXT("+ New Mat")))
 					.ContentPadding(4.0f)
 				]
+
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.Padding(40,0,0,0)
+				[
+					SNew(SButton)
+					.OnClicked(this, &SMaterialGroupWidget::OnRemoveGroupButtonClicked)
+					.Text(FText::FromString(TEXT("Remove Group")))
+					.ContentPadding(4.0f)
+				]
 			]
 
+			
 		]
 	];
 
@@ -81,9 +92,10 @@ void SMaterialGroupWidget::Construct(const FArguments& InArgs, const TSharedPtr<
 
 void SMaterialGroupWidget::SaveGroupInfo(const TSharedPtr<const FMaterialGroupInfo>& GroupInfo)
 {
-	m_GroupInfo.GroupName = GroupInfo.Get()->GroupName;
-	m_GroupInfo.Parent = GroupInfo.Get()->Parent;
-	m_GroupInfo.MatList = GroupInfo.Get()->MatList;
+	m_GroupInfo = MakeShareable(new FMaterialGroupInfo());
+	m_GroupInfo->GroupName = GroupInfo.Get()->GroupName;
+	m_GroupInfo->Parent = GroupInfo.Get()->Parent;
+	m_GroupInfo->MatList = GroupInfo.Get()->MatList;
 }
 
 
@@ -98,13 +110,18 @@ TSharedRef<ITableRow> SMaterialGroupWidget::OnGenerateWidgetForItem(TSharedPtr<F
 FReply SMaterialGroupWidget::OnAddGroupItemButtonClicked()
 {
 	TSharedPtr<FMaterialInfo> MatInfo = MakeShareable(new FMaterialInfo());
-	MatInfo->ParentGroup = m_GroupInfo.GroupName;
-	MatInfo->ParentPlan = m_GroupInfo.Parent;
+	MatInfo->ParentGroup = m_GroupInfo->GroupName;
+	MatInfo->ParentPlan = m_GroupInfo->Parent;
 	FilteredItems.Emplace(MatInfo);
 	ListView->RequestListRefresh();
 	return FReply::Handled();
 }
 
+FReply SMaterialGroupWidget::OnRemoveGroupButtonClicked()
+{
+	DelegateManager::Get()->DeleteSceneMatGroup.Broadcast(m_GroupInfo);
+	return FReply::Handled();
+}
 
 void SMaterialGroupWidget::AddMaterialInstanceByInfo(const FMaterialInfo& matInfo)
 {

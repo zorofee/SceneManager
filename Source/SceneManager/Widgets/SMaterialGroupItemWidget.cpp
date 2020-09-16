@@ -11,6 +11,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "SceneManagerSaveGame.h"
 
+#include "Engine/World.h"
+#include "Engine/StaticMeshActor.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 
 void SMaterialGroupItemEntry::Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialInfo>& InItem)
@@ -86,10 +89,30 @@ void SMaterialGroupItemWidget::SaveMaterialInfo(const TSharedPtr<const FMaterial
 
 void SMaterialGroupItemWidget::OnFinishedChangingProperties(const FPropertyChangedEvent& InEvent)
 {
-	DelegateManager::Get()->DeleteSceneMatInstance.Broadcast(m_MaterialInfo);
+	FString originPath = m_MaterialInfo->MatPath;
 	AnalysisMaterialParams();
-	//解析完参数后刷一遍数据
-	DelegateManager::Get()->OnMatParamChanged.Broadcast(m_MaterialInfo);
+
+	UE_LOG(LogTemp, Warning, TEXT("O : %s, C : %s"), *originPath, *m_MaterialInfo->MatPath);
+
+	if (originPath == TEXT(""))
+	{
+		//若之前材质球为空且当前选择材质球不为空，则刷新数据
+		if (m_MaterialInfo->MatPath != TEXT(""))
+			DelegateManager::Get()->OnMatParamChanged.Broadcast(m_MaterialInfo);
+	}
+	else
+	{
+		if (m_MaterialInfo->MatPath == originPath)
+		{
+			//若之前材质球不为空,当前选择材质球跟之前一样（选clear时一样），则删除
+			DelegateManager::Get()->DeleteSceneMatInstance.Broadcast(m_MaterialInfo);
+		}
+		else
+		{
+			//若之前材质球和当前选择的材质球都不为空,，则替换数据
+			DelegateManager::Get()->ReplaceSceneMatInstance.Broadcast(m_MaterialInfo, originPath);
+		}
+	}
 }
 
 
@@ -171,6 +194,33 @@ void SMaterialGroupItemWidget::OnScalarValueChanged(float value, FString name)
 {
 	m_MaterialInfo->ScalarParams[name] = value;
 	DelegateManager::Get()->OnMatParamChanged.Broadcast(m_MaterialInfo);
+
+	
+	
+	//修改场景中的动态材质实例
+	TArray<AActor*> actorList;
+	UWorld* World = GEditor->GetEditorWorldContext().World();
+	ULevel* Level = World->GetCurrentLevel();
+
+	UGameplayStatics::GetAllActorsOfClass(World, AStaticMeshActor::StaticClass(), actorList);
+	UE_LOG(LogTemp, Warning, TEXT("Actor num is %d"), actorList.Num());
+	for (size_t i = 0; i < actorList.Num(); i++)
+	{
+		AStaticMeshActor* meshActor = Cast<AStaticMeshActor>(actorList[i]);
+		TArray<UMaterialInterface*> mats = meshActor->GetStaticMeshComponent()->GetMaterials();
+		for (size_t j = 0; j < mats.Num(); j++)
+		{
+			if (UMaterialInstance* DynMaterial = Cast<UMaterialInstance>(mats[j]))
+			{
+				if(DynMaterial == lms->material)
+					UE_LOG(LogTemp,Warning,TEXT("DYN %s, LMS %s "), *DynMaterial->GetName(), *lms->material->GetName());
+				
+				meshActor->GetStaticMeshComponent()->SetScalarParameterValueOnMaterials(FName(name),value);
+
+			}
+		}
+	}
+
 }
 
 
@@ -294,13 +344,14 @@ void SMaterialGroupItemWidget::AddParamsToSlot()
 		];
 	}
 
-	ParamContainer->AddSlot(i++, j)
+	//暂时不需要button,可以选择材质球上的clear删除
+	/*ParamContainer->AddSlot(i++, j)
 	[
 		SNew(SButton)
 		.Text(FText::FromString(TEXT("Delete")))
 		.OnClicked(this,&SMaterialGroupItemWidget::DeleteCurrentMat)
 	]
-	;
+	;*/
 }
 
 FReply SMaterialGroupItemWidget::DeleteCurrentMat()

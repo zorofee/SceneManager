@@ -63,8 +63,14 @@ void FSceneManagerModule::StartupModule()
 	if (!DelegateManager::Get()->LoadGameData.IsBound())
 		DelegateManager::Get()->LoadGameData.AddRaw(this, &FSceneManagerModule::LoadGameData);
 
+	if (!DelegateManager::Get()->DeleteSceneMatGroup.IsBound())
+		DelegateManager::Get()->DeleteSceneMatGroup.AddRaw(this, &FSceneManagerModule::DeleteMatGroup);
+
 	if (!DelegateManager::Get()->DeleteSceneMatInstance.IsBound())
 		DelegateManager::Get()->DeleteSceneMatInstance.AddRaw(this, &FSceneManagerModule::DeleteMatInstance);
+
+	if (!DelegateManager::Get()->ReplaceSceneMatInstance.IsBound())
+		DelegateManager::Get()->ReplaceSceneMatInstance.AddRaw(this, &FSceneManagerModule::ReplaceMatInstance);
 }
 
 void FSceneManagerModule::ShutdownModule()
@@ -177,6 +183,10 @@ void FSceneManagerModule::AddMatInstanceData(TSharedPtr<FMaterialInfo> matInfo)
 		{
 			FMaterialInfo matData;
 			matData.MatPath = matInfo->MatPath;
+			matData.ParentGroup = matInfo->ParentGroup;
+			matData.ParentPlan = matInfo->ParentPlan;
+			matData.ScalarParams = matInfo->ScalarParams;
+			matData.VectorParams = matInfo->VectorParams;
 			saveGame->PlanList[matInfo->ParentPlan].GroupList[matInfo->ParentGroup].MatList.Emplace(matInfo->MatPath, matData);
 		}
 	}
@@ -194,6 +204,39 @@ void FSceneManagerModule::SetMatScalarParam(TSharedPtr<FMaterialInfo> matInfo)
 			if (saveGame->PlanList[plan].GroupList[group].MatList.Contains(path))
 			{
 				saveGame->PlanList[plan].GroupList[group].MatList[path] = *matInfo;
+			}
+		}
+	}
+}
+
+void FSceneManagerModule::DeleteMatGroup(TSharedPtr<FMaterialGroupInfo> matInfo)
+{
+	FString plan = matInfo->Parent;
+	FString group = matInfo->GroupName;
+	if (saveGame->PlanList.Contains(plan))
+	{
+		if (saveGame->PlanList[plan].GroupList.Contains(group))
+		{
+			saveGame->PlanList[plan].GroupList.Remove(group);
+
+		}
+	}
+
+	/*
+	重新刷新
+	*/
+
+	//SceneManagerTools->ClearChildren();
+	SceneManagerTools->MatGroupItems.Empty();
+	SceneManagerTools->ListView->RequestListRefresh();
+
+	for (TPair<FString, FMaterialPlanInfo> iterator : saveGame->PlanList)
+	{
+		for (TPair<FString, FMaterialGroupInfo> groupIt : iterator.Value.GroupList)
+		{
+			if (SceneManagerTools)
+			{
+				SceneManagerTools->AddMaterialGroup(groupIt.Value);
 			}
 		}
 	}
@@ -221,8 +264,7 @@ void FSceneManagerModule::DeleteMatInstance(TSharedPtr<FMaterialInfo> matInfo)
 	
 	在删除材质球时需要调下面的方法
 	*/
-	return;
-	//SceneManagerTools->ClearChildren();
+
 	SceneManagerTools->MatGroupItems.Empty();
 	SceneManagerTools->ListView->RequestListRefresh();
 	
@@ -238,6 +280,27 @@ void FSceneManagerModule::DeleteMatInstance(TSharedPtr<FMaterialInfo> matInfo)
 	}
 
 }
+
+void FSceneManagerModule::ReplaceMatInstance(TSharedPtr<FMaterialInfo> matInfo, FString originPath)
+{
+	UE_LOG(LogTemp, Warning, TEXT("REMOVE 11 %d"), matInfo->ScalarParams.Num());
+	FString plan = matInfo->ParentPlan;
+	FString group = matInfo->ParentGroup;
+	FString path = matInfo->MatPath;
+	if (saveGame->PlanList.Contains(plan))
+	{
+		if (saveGame->PlanList[plan].GroupList.Contains(group))
+		{
+			if (saveGame->PlanList[plan].GroupList[group].MatList.Contains(originPath))
+			{
+				saveGame->PlanList[plan].GroupList[group].MatList.Remove(originPath);
+			}
+		}
+	}
+
+	AddMatInstanceData(matInfo);
+}
+
 
 void FSceneManagerModule::SaveGameData()
 {

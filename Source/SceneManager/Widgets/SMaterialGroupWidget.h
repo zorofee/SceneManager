@@ -46,12 +46,15 @@ private:
 
 	FReply OnAddGroupItemButtonClicked();
 
+	FReply OnRemoveGroupButtonClicked();
+
+
 	void SaveGroupInfo(const TSharedPtr<const FMaterialGroupInfo>& GroupInfo);
 
 
 public:
-	FMaterialGroupInfo m_GroupInfo;  //parent plan name;
-
+	//FMaterialGroupInfo m_GroupInfo;  //parent plan name;
+	TSharedPtr<FMaterialGroupInfo> m_GroupInfo;
 
 	void AddMaterialInstanceByInfo(const FMaterialInfo& matInfo);
 };

@@ -2,8 +2,9 @@
 
 
 #include "SMaterialGroupWidget.h"
+#include "DelegateManager.h"
 
-void SMaterialGroupEntry::Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroup>& GroupInfo)
+void SMaterialGroupEntry::Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroupInfo>& GroupInfo)
 {
 	ChildSlot
 	[
@@ -31,10 +32,9 @@ void SMaterialGroupEntry::Construct(const FArguments& InArgs, const TSharedPtr<c
 }
 
 
-void SMaterialGroupWidget::Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroup>& GroupInfo)
+void SMaterialGroupWidget::Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroupInfo>& GroupInfo)
 {
-	m_GroupInfo.GroupName = GroupInfo.Get()->GroupName;
-	m_GroupInfo.Parent = GroupInfo.Get()->Parent;
+	SaveGroupInfo(GroupInfo);
 
 	ChildSlot
 	[
@@ -60,32 +60,60 @@ void SMaterialGroupWidget::Construct(const FArguments& InArgs, const TSharedPtr<
 				[
 					SNew(SButton)
 					.OnClicked(this, &SMaterialGroupWidget::OnAddGroupItemButtonClicked)
-					.Text(FText::FromString(TEXT("+")))
+					.Text(FText::FromString(TEXT("+ New Mat")))
+					.ContentPadding(4.0f)
 				]
 			]
 
 		]
 	];
+
+
+	//如果已有材质列表,则需要刷新
+	if (GroupInfo->MatList.Num()>0)
+	{
+		for (TPair<FString, FMaterialInfo> iterator : GroupInfo->MatList)
+		{
+			AddMaterialInstanceByInfo(iterator.Value);
+		}
+	}
 }
+
+void SMaterialGroupWidget::SaveGroupInfo(const TSharedPtr<const FMaterialGroupInfo>& GroupInfo)
+{
+	m_GroupInfo.GroupName = GroupInfo.Get()->GroupName;
+	m_GroupInfo.Parent = GroupInfo.Get()->Parent;
+	m_GroupInfo.MatList = GroupInfo.Get()->MatList;
+}
+
 
 TSharedRef<ITableRow> SMaterialGroupWidget::OnGenerateWidgetForItem(TSharedPtr<FMaterialInfo> InItem, const TSharedRef<STableViewBase>& OwnerTable)
 {
 	return SNew(STableRow<TSharedPtr<FMaterialInfo>>, OwnerTable)
 		[
 			SNew(SMaterialGroupItemEntry, InItem.ToSharedRef())
-			//.HighlightText(this, &SSceneManagerTools::GetHighlightText)
 		];
 }
 
 FReply SMaterialGroupWidget::OnAddGroupItemButtonClicked()
 {
-	TSharedPtr<FMaterialInfo> newItem = MakeShareable(new FMaterialInfo());
-	newItem->ParentGroup = m_GroupInfo.GroupName;
-	newItem->ParentPlan = m_GroupInfo.Parent;
-	FilteredItems.Emplace(newItem);
+	TSharedPtr<FMaterialInfo> MatInfo = MakeShareable(new FMaterialInfo());
+	MatInfo->ParentGroup = m_GroupInfo.GroupName;
+	MatInfo->ParentPlan = m_GroupInfo.Parent;
+	FilteredItems.Emplace(MatInfo);
 	ListView->RequestListRefresh();
-
-
-	UE_LOG(LogTemp,Warning,TEXT("OnAddGroupItemButtonClicked %s"),*m_GroupInfo.Parent);
 	return FReply::Handled();
+}
+
+
+void SMaterialGroupWidget::AddMaterialInstanceByInfo(const FMaterialInfo& matInfo)
+{
+	TSharedPtr<FMaterialInfo> MatInfo = MakeShareable(new FMaterialInfo());
+	MatInfo->ParentGroup = matInfo.ParentGroup;
+	MatInfo->ParentPlan = matInfo.ParentPlan;
+	MatInfo->MatPath = matInfo.MatPath;
+	MatInfo->ScalarParams = matInfo.ScalarParams;
+	MatInfo->VectorParams = matInfo.VectorParams;
+	FilteredItems.Emplace(MatInfo);
+	/*ListView->RequestListRefresh();*/
 }

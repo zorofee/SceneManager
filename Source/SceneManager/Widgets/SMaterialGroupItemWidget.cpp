@@ -31,11 +31,9 @@ void SMaterialGroupItemEntry::Construct(const FArguments& InArgs, const TSharedP
 1.新增,此时参数全为空;
 2.根据保存数据加载,此时参数按照加载的材质球上的参数创建。
 */
-void SMaterialGroupItemWidget::Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialInfo>& InItem)
+void SMaterialGroupItemWidget::Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialInfo>& MatInfo)
 {
-	m_MaterialInfo.ParentPlan = InItem.Get()->ParentPlan;
-	m_MaterialInfo.ParentGroup = InItem.Get()->ParentGroup;
-
+	SaveMaterialInfo(MatInfo);
 
 	FDetailsViewArgs DetailsViewArgs(false, false, true, FDetailsViewArgs::HideNameArea, true);
 	DetailsViewArgs.bAllowSearch = false;
@@ -55,23 +53,48 @@ void SMaterialGroupItemWidget::Construct(const FArguments& InArgs, const TShared
 			LevelMatView
 		]
 
-	+ SVerticalBox::Slot()
+		+ SVerticalBox::Slot()
 		.AutoHeight()
 		[
-			SAssignNew(ParamContainer, SVerticalBox)
+			SAssignNew(ParamContainer, SUniformGridPanel)
+			.SlotPadding(2)
 		]
+
 		];
+
+	
+	//如果已有材质路径则直接根据已有的数据刷新参数
+	if (m_MaterialInfo->MatPath != TEXT(""))
+	{
+		LoadMaterialInstanceByInfo();
+	}
+
 }
+
+
+void SMaterialGroupItemWidget::SaveMaterialInfo(const TSharedPtr<const FMaterialInfo>& MatInfo)
+{
+	m_MaterialInfo = MakeShareable(new FMaterialInfo());
+	m_MaterialInfo->ParentPlan = MatInfo->ParentPlan;
+	m_MaterialInfo->ParentGroup = MatInfo->ParentGroup;
+	m_MaterialInfo->MatPath = MatInfo->MatPath;
+	m_MaterialInfo->ScalarParams = MatInfo->ScalarParams;
+	m_MaterialInfo->VectorParams = MatInfo->VectorParams;
+}
+
 
 
 void SMaterialGroupItemWidget::OnFinishedChangingProperties(const FPropertyChangedEvent& InEvent)
 {
+	DelegateManager::Get()->DeleteSceneMatInstance.Broadcast(m_MaterialInfo);
 	AnalysisMaterialParams();
+	//解析完参数后刷一遍数据
+	DelegateManager::Get()->OnMatParamChanged.Broadcast(m_MaterialInfo);
 }
 
 
 
-TSharedRef<SHorizontalBox> SMaterialGroupItemWidget::GetScalarParamSlot(FParamInfo* info)
+TSharedRef<SHorizontalBox> SMaterialGroupItemWidget::GetScalarParamSlot(FString name , float value)
 {
 	return
 		SNew(SHorizontalBox)
@@ -83,7 +106,7 @@ TSharedRef<SHorizontalBox> SMaterialGroupItemWidget::GetScalarParamSlot(FParamIn
 		.VAlign(EVerticalAlignment::VAlign_Bottom)
 		[
 			SNew(STextBlock)
-			.Text(FText::FromString(info->paramName))
+			.Text(FText::FromString(name))
 		]
 
 	+ SHorizontalBox::Slot()
@@ -96,11 +119,11 @@ TSharedRef<SHorizontalBox> SMaterialGroupItemWidget::GetScalarParamSlot(FParamIn
 	+ SHorizontalBox::Slot()
 		.AutoWidth()
 		[
-			SNew(SSpinBox<float>)
-			.OnValueChanged(this, &SMaterialGroupItemWidget::OnScalarValueChanged, info)
+		SNew(SSpinBox<float>)
+		.OnValueChanged(this, &SMaterialGroupItemWidget::OnScalarValueChanged, name)
 		.MinValue(-100)
 		.MaxValue(100)
-		.Value(info->scalarValue)
+		.Value(value)
 		]
 
 	+ SHorizontalBox::Slot()
@@ -110,11 +133,10 @@ TSharedRef<SHorizontalBox> SMaterialGroupItemWidget::GetScalarParamSlot(FParamIn
 			.WidthOverride(20)
 		];
 
-
 }
 
 
-TSharedRef<SHorizontalBox> SMaterialGroupItemWidget::GetVectorParamSlot(FParamInfo* info)
+TSharedRef<SHorizontalBox> SMaterialGroupItemWidget::GetVectorParamSlot(FString name, FLinearColor value)
 {
 	return
 		SNew(SHorizontalBox)
@@ -125,7 +147,7 @@ TSharedRef<SHorizontalBox> SMaterialGroupItemWidget::GetVectorParamSlot(FParamIn
 		.VAlign(EVerticalAlignment::VAlign_Bottom)
 		[
 			SNew(STextBlock)
-			.Text(FText::FromString(info->paramName))
+			.Text(FText::FromString(name))
 		]
 
 	+ SHorizontalBox::Slot()
@@ -140,32 +162,29 @@ TSharedRef<SHorizontalBox> SMaterialGroupItemWidget::GetVectorParamSlot(FParamIn
 		.AutoWidth()
 		[
 			SAssignNew(ColorImage, SImage)
-			.ColorAndOpacity(FSlateColor(CachedColor))
-		.OnMouseButtonDown(this, &SMaterialGroupItemWidget::OnClickColorBlock)
+			.ColorAndOpacity(FSlateColor(value))
+			.OnMouseButtonDown(this, &SMaterialGroupItemWidget::OnClickColorBlock, name)
 		];
 }
 
-void SMaterialGroupItemWidget::OnScalarValueChanged(float value, FParamInfo* info)
+void SMaterialGroupItemWidget::OnScalarValueChanged(float value, FString name)
 {
-	UE_LOG(LogTemp, Warning, TEXT("%s %s ValueChanged %f"), *info->paramName, *info->mat->GetName(), info->scalarValue);
-	DelegateManager::Get()->OnMatScalarValueChanged.Broadcast(info->mat, info->paramName, info->scalarValue);
-
+	m_MaterialInfo->ScalarParams[name] = value;
+	DelegateManager::Get()->OnMatParamChanged.Broadcast(m_MaterialInfo);
 }
 
 
-FReply SMaterialGroupItemWidget::OnClickColorBlock(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+FReply SMaterialGroupItemWidget::OnClickColorBlock(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent, FString name)
 {
 	FColorPickerArgs PickerArgs;
 	{
 		PickerArgs.bUseAlpha = true;
 		PickerArgs.bOnlyRefreshOnOk = true;
 		PickerArgs.DisplayGamma = TAttribute<float>::Create(TAttribute<float>::FGetter::CreateUObject(GEngine, &UEngine::GetDisplayGamma));
-		PickerArgs.OnColorCommitted = FOnLinearColorValueChanged::CreateSP(this, &SMaterialGroupItemWidget::OnSetColorFromColorPicker);
+		PickerArgs.OnColorCommitted = FOnLinearColorValueChanged::CreateSP(this, &SMaterialGroupItemWidget::OnSetColorFromColorPicker, name);
 		PickerArgs.InitialColorOverride = CachedColor;
 		PickerArgs.ParentWidget = ColorImage;
 	}
-
-	//FVariantColorNodeImpl::GetCommonColorFromPropertyValues(PickerArgs.InitialColorOverride, PropertyValues);
 
 	OpenColorPicker(PickerArgs);
 	return FReply::Handled();
@@ -173,23 +192,25 @@ FReply SMaterialGroupItemWidget::OnClickColorBlock(const FGeometry& MyGeometry, 
 }
 
 
-void SMaterialGroupItemWidget::OnSetColorFromColorPicker(FLinearColor NewColor)
+void SMaterialGroupItemWidget::OnSetColorFromColorPicker(FLinearColor NewColor,FString name)
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnSetColorFromColorPicker %s"), *NewColor.ToString());
 	CachedColor = NewColor;
 	ColorImage->SetColorAndOpacity(CachedColor);
+
+	m_MaterialInfo->VectorParams[name] = NewColor;
+	DelegateManager::Get()->OnMatParamChanged.Broadcast(m_MaterialInfo);
 }
 
-void SMaterialGroupItemWidget::LoadCurrentMaterial(const FString path)
+void SMaterialGroupItemWidget::LoadMaterialInstanceByInfo()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Load current material %s"), *path);
-	//UObject* loadObj = StaticLoadObject(UMaterialInstance::StaticClass(), NULL, TEXT("/Game/Grass_Ins.Grass_Ins"));
-	UObject* loadMat = StaticLoadObject(UMaterialInstance::StaticClass(), NULL, *path);
+	UE_LOG(LogTemp, Warning, TEXT("Load current material %s"), *m_MaterialInfo->MatPath);
+	UObject* loadMat = StaticLoadObject(UMaterialInstance::StaticClass(), NULL, *m_MaterialInfo->MatPath);
 	if (loadMat != nullptr)
 	{
 		lms->material = Cast<UMaterialInstance>(loadMat);
 	}
-	AnalysisMaterialParams();
+	AddParamsToSlot();
 }
 
 
@@ -197,8 +218,8 @@ void SMaterialGroupItemWidget::AnalysisMaterialParams()
 {
 
 	ParamContainer.Get()->ClearChildren();
-	VectorParamsPair.Empty();
-	ScalarParamsPair.Empty();
+	m_MaterialInfo->VectorParams.Empty();
+	m_MaterialInfo->ScalarParams.Empty();
 
 	UMaterialInstance* Material = lms->material;
 	if (Material)
@@ -206,7 +227,9 @@ void SMaterialGroupItemWidget::AnalysisMaterialParams()
 		TArray<FMaterialParameterInfo> ParameterInfo;
 		TArray<FGuid> ParameterGuids;
 		FString GroupName;
-
+		FString ParamName;
+		float ScalarValue;
+		FLinearColor VectorValue;
 		//Get scalar parameters name and value
 		Material->GetAllScalarParameterInfo(ParameterInfo, ParameterGuids);
 		for (size_t i = 0; i < ParameterInfo.Num(); i++)
@@ -218,11 +241,10 @@ void SMaterialGroupItemWidget::AnalysisMaterialParams()
 			GroupName = groupName.ToString();
 			if (GroupName.Equals(TEXT("LevelMaterial")))
 			{
-				FParamInfo* info = new FParamInfo();
-				info->mat = Material;
-				info->paramName = ParameterInfo[i].Name.ToString();
-				Material->GetScalarParameterValue(ParameterInfo[i], info->scalarValue);
-				ScalarParamsPair.Emplace(info->paramName, info);
+				ParamName = ParameterInfo[i].Name.ToString();
+				Material->GetScalarParameterValue(ParameterInfo[i], ScalarValue);
+				m_MaterialInfo->ScalarParams.Emplace(ParamName, ScalarValue);
+
 			}
 		}
 
@@ -234,74 +256,56 @@ void SMaterialGroupItemWidget::AnalysisMaterialParams()
 		{
 			FName groupName;
 			Material->GetGroupName(ParameterInfo[i], groupName);
-			UE_LOG(LogTemp, Warning, TEXT("Group name is %s , %s"), *groupName.ToString(), *ParameterInfo[i].Name.ToString());
 
 			GroupName = groupName.ToString();
 			if (GroupName.Equals(TEXT("LevelMaterial")))
 			{
-				FParamInfo* info = new FParamInfo();
-				info->mat = Material;
-				info->paramName = ParameterInfo[i].Name.ToString();
-				Material->GetVectorParameterValue(ParameterInfo[i], info->vectorValue);
-				VectorParamsPair.Emplace(info->paramName, info);
+				ParamName = ParameterInfo[i].Name.ToString();
+				Material->GetVectorParameterValue(ParameterInfo[i], VectorValue);
+				m_MaterialInfo->VectorParams.Emplace(ParamName, VectorValue);
+				UE_LOG(LogTemp, Warning, TEXT("Group name is %s , %s , %s"), *groupName.ToString(), *ParameterInfo[i].Name.ToString(), *VectorValue.ToString());
 			}
 		}
-
 		AddParamsToSlot();
-
-
-		m_MaterialInfo.MatPath = Material->GetPathName();
+		m_MaterialInfo->MatPath = Material->GetPathName();
+		DelegateManager::Get()->AddSceneMatInstance.Broadcast(m_MaterialInfo);
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("Plan is %s , Group name is %s, Mat path is %s"), *m_MaterialInfo.ParentPlan, *m_MaterialInfo.ParentGroup, *m_MaterialInfo.MatPath);
-
 }
+
 
 void SMaterialGroupItemWidget::AddParamsToSlot()
 {
-	for (TPair<FString, FParamInfo*> item : VectorParamsPair)
+	int i = 0 , j = 0;
+	for (TPair<FString, FLinearColor> item : m_MaterialInfo->VectorParams)
 	{
-		ParamContainer->AddSlot()
-			.AutoHeight()
-			[
-				GetVectorParamSlot(item.Value)
-			];
+		ParamContainer->AddSlot(i++,j)
+			//.AutoHeight()
+		[
+			GetVectorParamSlot(item.Key,item.Value)
+		];
 	}
 
-	for (TPair<FString, FParamInfo*> item : ScalarParamsPair)
+	for (TPair<FString, float> item : m_MaterialInfo->ScalarParams)
 	{
-		ParamContainer->AddSlot()
-			.AutoHeight()
-			[
-				GetScalarParamSlot(item.Value)
-			];
+		ParamContainer->AddSlot(i++,j)
+			//.AutoHeight()
+		[
+			GetScalarParamSlot(item.Key, item.Value)
+		];
 	}
+
+	ParamContainer->AddSlot(i++, j)
+	[
+		SNew(SButton)
+		.Text(FText::FromString(TEXT("Delete")))
+		.OnClicked(this,&SMaterialGroupItemWidget::DeleteCurrentMat)
+	]
+	;
 }
 
-
-
-FReply SMaterialGroupItemWidget::TestSaveData()
+FReply SMaterialGroupItemWidget::DeleteCurrentMat()
 {
 
-	//更新当前所有的参数到对应的map中
-	UE_LOG(LogTemp, Warning, TEXT("Plan is %s , Group name is %s, Mat path is %s"), *m_MaterialInfo.ParentPlan, *m_MaterialInfo.ParentGroup, *m_MaterialInfo.MatPath);
-	for (TPair<FString, FParamInfo*> item : VectorParamsPair)
-	{
-		item.Value;
-	}
-
-	for (TPair<FString, FParamInfo*> item : VectorParamsPair)
-	{
-		item.Value;
-	}
-
+	DelegateManager::Get()->DeleteSceneMatInstance.Broadcast(m_MaterialInfo);
 	return FReply::Handled();
-
-	//load data from disk
-	USceneManagerSaveGame* saveGame1 = Cast<USceneManagerSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("TestSlot"), 0));
-	FString path = saveGame1->PlanList["TestPlan"].GroupList["TestGroup"].MatList["TestMat"].MatPath;
-	LoadCurrentMaterial(path);
-
-	return FReply::Handled();
-
 }

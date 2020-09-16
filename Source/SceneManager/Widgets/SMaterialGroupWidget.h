@@ -3,23 +3,12 @@
 #pragma once
 
 #include "SMaterialGroupItemWidget.h"
+#include "DataStructures.h"
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
 /**
  * 
  */
-
-
-struct FMaterialGroup
-{
-	FMaterialGroup() {}
-
-public:
-	FString GroupName;
-
-	FString Parent;
-};
-
 
 class SMaterialGroupEntry : public SCompoundWidget
 {
@@ -31,7 +20,8 @@ public:
 
 		SLATE_END_ARGS()
 
-		void Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroup>& GroupInfo);
+		void Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroupInfo>& GroupInfo);
+	//void Construct(const FArguments& InArgs, FMaterialGroupInfo& GroupInfo);
 };
 
 
@@ -41,7 +31,8 @@ public:
 	SLATE_BEGIN_ARGS(SMaterialGroupWidget) {}
 	SLATE_END_ARGS();
 
-	void Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroup>& GroupInfo);
+	void Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroupInfo>& GroupInfo);
+	//void Construct(const FArguments& InArgs, FMaterialGroupInfo& GroupInfo);
 
 private:
 	/** List view that shows placeable items */
@@ -51,12 +42,16 @@ private:
 	TArray<TSharedPtr<FMaterialInfo>> FilteredItems;
 
 	/** Generates a widget for the specified item */
-	TSharedRef<ITableRow> OnGenerateWidgetForItem(TSharedPtr<FMaterialInfo> InItem, const TSharedRef<STableViewBase>& OwnerTable);
+	TSharedRef<ITableRow> OnGenerateWidgetForItem(TSharedPtr<FMaterialInfo> InItem,const TSharedRef<STableViewBase>& OwnerTable);
 
 	FReply OnAddGroupItemButtonClicked();
 
+	void SaveGroupInfo(const TSharedPtr<const FMaterialGroupInfo>& GroupInfo);
+
 
 public:
-	FMaterialGroup m_GroupInfo;  //parent plan name;
+	FMaterialGroupInfo m_GroupInfo;  //parent plan name;
 
+
+	void AddMaterialInstanceByInfo(const FMaterialInfo& matInfo);
 };

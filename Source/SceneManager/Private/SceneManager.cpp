@@ -6,7 +6,10 @@
 #include "LevelEditor.h"
 #include "ToolMenus.h"
 #include "DelegateManager.h"
-#include "../Widgets/SSceneManagerEntry.h"
+#include "Kismet/GameplayStatics.h"
+#include "DelegateManager.h"
+
+
 
 static const FName SceneManagerTabName("SceneManager");
 
@@ -35,8 +38,33 @@ void FSceneManagerModule::StartupModule()
 		.SetMenuType(ETabSpawnerMenuType::Hidden);
 
 
-	DelegateManager::Get()->OnMatScalarValueChanged.AddRaw(this, &FSceneManagerModule::TestDelegate);
 
+
+	if(!DelegateManager::Get()->AddSceneMatPlan.IsBound())
+		DelegateManager::Get()->AddSceneMatPlan.AddRaw(this, &FSceneManagerModule::AddPlanData);
+	
+	if (!DelegateManager::Get()->AddSceneMatGroup.IsBound())
+		DelegateManager::Get()->AddSceneMatGroup.AddRaw(this, &FSceneManagerModule::AddMatGroupData);
+	
+	if (!DelegateManager::Get()->AddSceneMatInstance.IsBound())
+		DelegateManager::Get()->AddSceneMatInstance.AddRaw(this, &FSceneManagerModule::AddMatInstanceData);
+	
+	if (!DelegateManager::Get()->OnMatParamChanged.IsBound())
+		DelegateManager::Get()->OnMatParamChanged.AddRaw(this, &FSceneManagerModule::SetMatScalarParam);
+	
+	if (!DelegateManager::Get()->SaveGameData.IsBound())
+		DelegateManager::Get()->SaveGameData.AddRaw(this, &FSceneManagerModule::SaveGameData);
+	else
+	{
+		DelegateManager::Get()->SaveGameData.Clear();
+		DelegateManager::Get()->SaveGameData.AddRaw(this, &FSceneManagerModule::SaveGameData);
+	}
+	
+	if (!DelegateManager::Get()->LoadGameData.IsBound())
+		DelegateManager::Get()->LoadGameData.AddRaw(this, &FSceneManagerModule::LoadGameData);
+
+	if (!DelegateManager::Get()->DeleteSceneMatInstance.IsBound())
+		DelegateManager::Get()->DeleteSceneMatInstance.AddRaw(this, &FSceneManagerModule::DeleteMatInstance);
 }
 
 void FSceneManagerModule::ShutdownModule()
@@ -57,6 +85,8 @@ void FSceneManagerModule::ShutdownModule()
 
 TSharedRef<SDockTab> FSceneManagerModule::OnSpawnPluginTab(const FSpawnTabArgs& SpawnTabArgs)
 {
+	saveGame = Cast<USceneManagerSaveGame>(UGameplayStatics::CreateSaveGameObject(USceneManagerSaveGame::StaticClass()));
+	
 	FText WidgetText = FText::Format(
 		LOCTEXT("WindowWidgetText", "Add code to {0} in {1} to override this window's contents"),
 		FText::FromString(TEXT("FSceneManagerModule::OnSpawnPluginTab")),
@@ -70,9 +100,10 @@ TSharedRef<SDockTab> FSceneManagerModule::OnSpawnPluginTab(const FSpawnTabArgs& 
 			SNew(SBox)
 			.Padding(4)
 			[
-				SNew(SSceneManagerTools)
+				SAssignNew(SceneManagerTools,SSceneManagerTools)
 			]
 		];
+
 }
 
 
@@ -106,9 +137,130 @@ void FSceneManagerModule::RegisterMenus()
 	}
 }
 
-void FSceneManagerModule::TestDelegate(UMaterialInstance* mat,FString name, float value)
+
+
+
+
+
+
+
+
+
+
+void FSceneManagerModule::AddPlanData(FString planName)
 {
-	UE_LOG(LogTemp, Warning, TEXT("TestDelegate %s %f"), *name, value);
+
+	FMaterialPlanInfo planData;
+	planData.Name = planName;
+	saveGame->PlanList.Emplace(planName, planData);
+}
+
+
+void FSceneManagerModule::AddMatGroupData(TSharedPtr<FMaterialGroupInfo> groupInfo)
+{
+
+	if (saveGame->PlanList.Contains(groupInfo->Parent))
+	{
+		FMaterialGroupInfo groupData;
+		groupData.GroupName = groupInfo->GroupName;
+		groupData.Parent = groupInfo->Parent;
+		saveGame->PlanList[groupInfo->Parent].GroupList.Emplace(groupData.GroupName, groupData);
+	}
+}
+
+void FSceneManagerModule::AddMatInstanceData(TSharedPtr<FMaterialInfo> matInfo)
+{
+
+	if (saveGame->PlanList.Contains(matInfo->ParentPlan))
+	{
+		if (saveGame->PlanList[matInfo->ParentPlan].GroupList.Contains(matInfo->ParentGroup))
+		{
+			FMaterialInfo matData;
+			matData.MatPath = matInfo->MatPath;
+			saveGame->PlanList[matInfo->ParentPlan].GroupList[matInfo->ParentGroup].MatList.Emplace(matInfo->MatPath, matData);
+		}
+	}
+}
+
+void FSceneManagerModule::SetMatScalarParam(TSharedPtr<FMaterialInfo> matInfo)
+{
+	FString plan = matInfo->ParentPlan;
+	FString group = matInfo->ParentGroup;
+	FString path = matInfo->MatPath;
+	if (saveGame->PlanList.Contains(plan))
+	{
+		if (saveGame->PlanList[plan].GroupList.Contains(group))
+		{
+			if (saveGame->PlanList[plan].GroupList[group].MatList.Contains(path))
+			{
+				saveGame->PlanList[plan].GroupList[group].MatList[path] = *matInfo;
+			}
+		}
+	}
+}
+
+
+void FSceneManagerModule::DeleteMatInstance(TSharedPtr<FMaterialInfo> matInfo)
+{
+	FString plan = matInfo->ParentPlan;
+	FString group = matInfo->ParentGroup;
+	FString path = matInfo->MatPath;
+	if (saveGame->PlanList.Contains(plan))
+	{
+		if (saveGame->PlanList[plan].GroupList.Contains(group))
+		{
+			if (saveGame->PlanList[plan].GroupList[group].MatList.Contains(path))
+			{
+				saveGame->PlanList[plan].GroupList[group].MatList.Remove(path);
+			}
+		}
+	}
+
+	/*
+	在切换材质球时只需要清空数据
+	
+	在删除材质球时需要调下面的方法
+	*/
+	return;
+	//SceneManagerTools->ClearChildren();
+	SceneManagerTools->MatGroupItems.Empty();
+	SceneManagerTools->ListView->RequestListRefresh();
+	
+	for (TPair<FString, FMaterialPlanInfo> iterator : saveGame->PlanList)
+	{
+		for (TPair<FString, FMaterialGroupInfo> groupIt : iterator.Value.GroupList)
+		{
+			if (SceneManagerTools)
+			{
+				SceneManagerTools->AddMaterialGroup(groupIt.Value);
+			}
+		}
+	}
+
+}
+
+void FSceneManagerModule::SaveGameData()
+{
+	if (saveGame)
+	{
+		UGameplayStatics::SaveGameToSlot(saveGame, TEXT("TestSlot"), 0);
+	}
+}
+
+void FSceneManagerModule::LoadGameData()
+{
+	saveGame = Cast<USceneManagerSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("TestSlot"), 0));
+
+	for (TPair<FString, FMaterialPlanInfo> plan : saveGame->PlanList)
+	{
+		for (TPair<FString, FMaterialGroupInfo> group : plan.Value.GroupList)
+		{
+			if (SceneManagerTools)
+			{
+				SceneManagerTools->AddMaterialGroup(group.Value);
+			}
+		}
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

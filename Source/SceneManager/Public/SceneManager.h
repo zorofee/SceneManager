@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include "../Widgets/SSceneManagerEntry.h"
+#include "DataStructures.h"
+#include "SceneManagerSaveGame.h"
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
@@ -29,6 +32,19 @@ private:
 private:
 	TSharedPtr<class FUICommandList> PluginCommands;
 
-	UFUNCTION()
-	void TestDelegate(UMaterialInstance* mat, FString name ,float value);
+	TSharedPtr<SSceneManagerTools> SceneManagerTools;
+
+	USceneManagerSaveGame* saveGame;
+
+	void AddPlanData(FString planName);
+	void AddMatGroupData(TSharedPtr<FMaterialGroupInfo> groupInfo);
+	void AddMatInstanceData(TSharedPtr<FMaterialInfo> matInfo);
+	void SetMatScalarParam(TSharedPtr<FMaterialInfo> matInfo);
+
+
+	void DeleteMatInstance(TSharedPtr<FMaterialInfo> matInfo);
+
+
+	void SaveGameData();
+	void LoadGameData();
 };

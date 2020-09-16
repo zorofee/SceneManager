@@ -2,12 +2,17 @@
 
 #pragma once
 
+#include "DataStructures.h"
 #include "CoreMinimal.h"
 
+DECLARE_MULTICAST_DELEGATE(SaveGameDataEvent)
+DECLARE_MULTICAST_DELEGATE(LoadGameDataEvent)
+DECLARE_MULTICAST_DELEGATE_OneParam(AddSceneMatPlanEvent, FString)
+DECLARE_MULTICAST_DELEGATE_OneParam(AddSceneMatGroupEvent, TSharedPtr<FMaterialGroupInfo>)
+DECLARE_MULTICAST_DELEGATE_OneParam(AddSceneMatInstanceEvent, TSharedPtr<FMaterialInfo>)
+DECLARE_MULTICAST_DELEGATE_OneParam(OnMatParamChanged, TSharedPtr<FMaterialInfo>)
 
-DECLARE_MULTICAST_DELEGATE_ThreeParams(OnMatScalarValueChanged, UMaterialInstance*,FString, float)
-DECLARE_MULTICAST_DELEGATE_OneParam(OnAddMatGroup, FString)
-DECLARE_MULTICAST_DELEGATE_OneParam(OnAddMatGroupItem, FString)
+DECLARE_MULTICAST_DELEGATE_OneParam(DeleteSceneMatInstanceEvent, TSharedPtr<FMaterialInfo>)
 
 /**
  * 
@@ -23,9 +28,18 @@ private:
 	static DelegateManager* instance;
 
 public:
-	OnMatScalarValueChanged OnMatScalarValueChanged;
 
-	OnAddMatGroup OnAddMatGroup;
+	AddSceneMatPlanEvent AddSceneMatPlan;
+	
+	AddSceneMatGroupEvent AddSceneMatGroup;
 
-	OnAddMatGroupItem OnAddMatGroupItem;
+	AddSceneMatInstanceEvent AddSceneMatInstance;
+
+	OnMatParamChanged OnMatParamChanged;
+
+	SaveGameDataEvent SaveGameData;
+
+	LoadGameDataEvent LoadGameData;
+
+	DeleteSceneMatInstanceEvent DeleteSceneMatInstance;
 };

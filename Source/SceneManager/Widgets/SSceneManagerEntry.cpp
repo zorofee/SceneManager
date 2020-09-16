@@ -8,10 +8,9 @@
 #include "ToolMenus.h"
 #include "Widgets/Input/SSearchBox.h"
 #include "Widgets/Input/SEditableTextBox.h"
+#include "DelegateManager.h"
 
 
-#include "Kismet/GameplayStatics.h"
-#include "SceneManagerSaveGame.h"
 
 #define LOCTEXT_NAMESPACE "FSceneManagerModule"
 
@@ -27,9 +26,12 @@ void SSceneManagerTools::Tick(const FGeometry& AllottedGeometry, const double In
 
 void SSceneManagerTools::Construct(const FArguments& InArgs)
 {
+
+	MatGroupItems.Empty();
+
 	TSharedRef<SVerticalBox> Tabs = SNew(SVerticalBox).Visibility(this, &SSceneManagerTools::GetTabsVisibility);
 	// Populate the tabs and body from the defined placeable items
-
+	UE_LOG(LogTemp,Warning,TEXT("SSceneManagerTools Construct !"));
 
 	SceneCategoryInfo Category;
 	Category.DisplayName = FText::FromString(FString::Printf(TEXT("Level Material")));
@@ -168,7 +170,7 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 								//material group list
 								+ SVerticalBox::Slot()
 								[
-									SAssignNew(ListView, SListView<TSharedPtr<FMaterialGroup>>)
+									SAssignNew(ListView, SListView<TSharedPtr<FMaterialGroupInfo>>)
 									.ListItemsSource(&MatGroupItems)
 									.OnGenerateRow(this, &SSceneManagerTools::OnGenerateWidgetForItem)
 									.ExternalScrollbar(ScrollBar)
@@ -182,12 +184,14 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 									.AutoWidth()
 									[
 										SNew(SButton)
-										.Text(FText::FromString("+"))
+										.Text(FText::FromString("+ New Group"))
 										.OnClicked(this,&SSceneManagerTools::OnAddGroupNameButtonClicked)
+										.ContentPadding(4.0f)
 									]
 									
 									+SHorizontalBox::Slot()
 									.AutoWidth()
+									.Padding(10,0,0,0)
 									[
 										SAssignNew(GroupNameText,SEditableTextBox)
 										.HintText(FText::FromString("Add new group name"))
@@ -232,13 +236,17 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 	];
 
 	ActiveTabName = Categories[0].UniqueHandle;
+
+
+
+	//AddPlanData(FString::Printf(TEXT("RedPlan")));
+	DelegateManager::Get()->AddSceneMatPlan.Broadcast(TEXT("RedPlan"));
 }
 
 
-
-TSharedRef<ITableRow> SSceneManagerTools::OnGenerateWidgetForItem(TSharedPtr<FMaterialGroup> InItem, const TSharedRef<STableViewBase>& OwnerTable)
+TSharedRef<ITableRow> SSceneManagerTools::OnGenerateWidgetForItem(TSharedPtr<FMaterialGroupInfo> InItem, const TSharedRef<STableViewBase>& OwnerTable)
 {
-	return SNew(STableRow<TSharedPtr<FMaterialGroup>>, OwnerTable)
+	return SNew(STableRow<TSharedPtr<FMaterialGroupInfo>>, OwnerTable)
 	[
 		SNew(SMaterialGroupEntry, InItem.ToSharedRef())
 	];
@@ -277,6 +285,7 @@ TSharedRef< SWidget > SSceneManagerTools::CreatePlacementGroupTab(const SceneCat
 			.Image(this, &SSceneManagerTools::PlacementGroupBorderImage, Info.UniqueHandle)
 		]
 		];
+
 
 }
 
@@ -330,8 +339,6 @@ void SSceneManagerTools::OnSearchCommitted(const FText& InFilterText, ETextCommi
 void SSceneManagerTools::UpdateCategoryContent()
 {
 	bNeedsUpdate = false;
-
-
 	//CustomContent->SetVisibility(EVisibility::Visible);
 	if (ActiveTabName == Categories[0].UniqueHandle)
 	{
@@ -349,51 +356,42 @@ void SSceneManagerTools::UpdateCategoryContent()
 
 FReply SSceneManagerTools::OnAddGroupNameButtonClicked()
 {
-	TSharedPtr<FMaterialGroup> Group = MakeShareable(new FMaterialGroup());
-	Group->GroupName = GroupNameText->GetText().ToString();
-	Group->Parent = FString::Printf(TEXT("RedPlan"));
-	MatGroupItems.Emplace(Group);
+	TSharedPtr<FMaterialGroupInfo> GroupInfo = MakeShareable(new FMaterialGroupInfo());
+	GroupInfo->GroupName = GroupNameText->GetText().ToString();
+	GroupInfo->Parent = FString::Printf(TEXT("RedPlan"));
+	MatGroupItems.Emplace(GroupInfo);
 	ListView->RequestListRefresh();
+
+	DelegateManager::Get()->AddSceneMatGroup.Broadcast(GroupInfo);
 	return FReply::Handled();
 }
 
 
 
+void SSceneManagerTools::AddMaterialGroup(const FMaterialGroupInfo& groupInfo)
+{
+	TSharedPtr<FMaterialGroupInfo> GroupInfo = MakeShareable(new FMaterialGroupInfo());
+
+	GroupInfo->GroupName = groupInfo.GroupName;
+	GroupInfo->Parent = groupInfo.Parent;
+	GroupInfo->MatList = groupInfo.MatList;
+	MatGroupItems.Emplace(GroupInfo);
+	ListView->RequestListRefresh();
+}
+
 
 FReply SSceneManagerTools::TestSaveData()
 {
-	USceneManagerSaveGame* saveGame = Cast<USceneManagerSaveGame>(UGameplayStatics::CreateSaveGameObject(USceneManagerSaveGame::StaticClass()));
-	saveGame->TestName = FString::Printf(TEXT("testtttt"));
-
-
-	FMatData matData;
-	matData.Name = FString::Printf(TEXT("TestMatData"));
-	matData.ScalarParams.Emplace(1.34);
-	matData.VectorParams.Emplace(FVector(1, 2, 3));
-
-	FGroupData groupData;
-	groupData.Name = FString::Printf(TEXT("TestGroupData"));
-	groupData.MatList.Emplace(TEXT("TestMat"),matData);
-
-	FPlanData planData;
-	planData.Name = FString::Printf(TEXT("TestPlanData"));
-	planData.GroupList.Emplace(TEXT("TestGroup"),groupData);
-
-	saveGame->PlanList.Emplace(TEXT("TestPlan"),planData);
-
-	UGameplayStatics::SaveGameToSlot(saveGame, TEXT("TestSlot"), 0);
-	UE_LOG(LogTemp, Warning, TEXT("TestSaveData %s  , plan data num is %d"), *saveGame->TestName,saveGame->PlanList.Num());
-
+	DelegateManager::Get()->SaveGameData.Broadcast();
 	return FReply::Handled();
 }
 
 FReply SSceneManagerTools::TestReadData()
 {
-	USceneManagerSaveGame* saveGame = Cast<USceneManagerSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("TestSlot"), 0));
-	UE_LOG(LogTemp, Warning, TEXT("Get data Plan: %s , mat data name : %s ,mat path is %s"),*saveGame->PlanList["TestPlan"].Name, *saveGame->PlanList["TestPlan"].GroupList["TestGroup"].MatList["TestMat"].Name, *saveGame->PlanList["TestPlan"].GroupList["TestGroup"].MatList["TestMat"].MatPath);
-
+	DelegateManager::Get()->LoadGameData.Broadcast();
 	return FReply::Handled();
 }
+
 
 #undef LOCTEXT_NAMESPACE
 

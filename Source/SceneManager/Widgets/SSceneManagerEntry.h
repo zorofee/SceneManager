@@ -2,10 +2,11 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include "DataStructures.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Layout/Visibility.h"
 #include "Widgets/SWidget.h"
+#include "CoreMinimal.h"
 #include "SMaterialGroupWidget.h"
 
 /**
@@ -51,15 +52,15 @@ public:
 
 
 	/** List view that shows placeable items */
-	TSharedPtr<SListView<TSharedPtr<FMaterialGroup>>> ListView;
+	TSharedPtr<SListView<TSharedPtr<FMaterialGroupInfo>>> ListView;
 
 	/** Array of filtered items to show in the list view */
-	TArray<TSharedPtr<FMaterialGroup>> MatGroupItems;
+	TArray<TSharedPtr<FMaterialGroupInfo>> MatGroupItems;
 
 	TSharedPtr<SEditableTextBox> GroupNameText;
 
 	/** Generates a widget for the specified item */
-	TSharedRef<ITableRow> OnGenerateWidgetForItem(TSharedPtr<FMaterialGroup> InItem, const TSharedRef<STableViewBase>& OwnerTable);
+	TSharedRef<ITableRow> OnGenerateWidgetForItem(TSharedPtr<FMaterialGroupInfo> InItem, const TSharedRef<STableViewBase>& OwnerTable);
 
 private:
 	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
@@ -92,6 +93,10 @@ private:
 	FReply TestSaveData();
 
 	FReply TestReadData();
-
 	
+
+public:
+	void AddMaterialGroup(const FMaterialGroupInfo& groupInfo);
+
+
 };

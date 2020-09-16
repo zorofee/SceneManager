@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "Widgets/Layout/SUniformGridPanel.h"
+#include "DataStructures.h"
 #include "LevelMaterialSettings.h"
 #include "Widgets/Colors/SColorBlock.h"
 #include "DelegateManager.h"
@@ -9,21 +11,6 @@
 #include "Widgets/SCompoundWidget.h"
 
 
-struct FMaterialInfo
-{
-	FString ParentPlan;
-	FString ParentGroup;
-	FString MatPath;
-};
-
-
-struct FParamInfo
-{
-	UMaterialInstance* mat;
-	FString paramName;
-	float scalarValue;
-	FLinearColor vectorValue;
-};
 
 
 class SMaterialGroupItemEntry : public SCompoundWidget
@@ -46,9 +33,12 @@ public:
 	SLATE_BEGIN_ARGS(SMaterialGroupItemWidget) {}
 	SLATE_END_ARGS();
 
-	void Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialInfo>& InItem);
+	void Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialInfo>& MatInfo);
 
 private:
+
+	void SaveMaterialInfo(const TSharedPtr<const FMaterialInfo>& MatInfo);
+
 	/*
 		Widget call back events
 	*/
@@ -56,27 +46,26 @@ private:
 
 	void OnFinishedChangingProperties(const FPropertyChangedEvent& InEvent);
 
-	void OnScalarValueChanged(float value, FParamInfo* info);
+	void OnScalarValueChanged(float value, FString name);
 
-	FReply OnClickColorBlock(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
+	FReply OnClickColorBlock(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent, FString name);
 
-	void OnSetColorFromColorPicker(FLinearColor NewColor);
+	void OnSetColorFromColorPicker(FLinearColor NewColor, FString name);
 
 
 
-	void LoadCurrentMaterial(const FString path);
+	void LoadMaterialInstanceByInfo();
 
 	void AnalysisMaterialParams();
 
 	void AddParamsToSlot();
 
-	FReply TestSaveData();
+	FReply DeleteCurrentMat();
 
 
-	TSharedRef<SHorizontalBox> GetScalarParamSlot(FParamInfo* info);
+	TSharedRef<SHorizontalBox> GetScalarParamSlot(FString name, float value);
 
-	TSharedRef<SHorizontalBox> GetVectorParamSlot(FParamInfo* info);
-
+	TSharedRef<SHorizontalBox> GetVectorParamSlot(FString name, FLinearColor value);
 
 
 private:
@@ -84,18 +73,13 @@ private:
 
 	TSharedPtr<SImage> ColorImage;
 
-	TSharedPtr<SVerticalBox> ParamContainer;
-
-	UPROPERTY()
-		ULevelMaterialSettings* lms;
-
-	UPROPERTY()
-		TMap<FString, FParamInfo*> ScalarParamsPair;
-
-	UPROPERTY()
-		TMap<FString, FParamInfo*> VectorParamsPair;
+	TSharedPtr<SUniformGridPanel> ParamContainer;
 
 
-	FMaterialInfo m_MaterialInfo;
+	ULevelMaterialSettings* lms;
+
+	TSharedPtr<FMaterialInfo> m_MaterialInfo;
+
+
 
 };

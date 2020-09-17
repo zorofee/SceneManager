@@ -17,6 +17,8 @@ static const FName SceneManagerTabName("SceneManager");
 
 void FSceneManagerModule::StartupModule()
 {
+
+
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
 	
 	FSceneManagerStyle::Initialize();
@@ -93,14 +95,25 @@ TSharedRef<SDockTab> FSceneManagerModule::OnSpawnPluginTab(const FSpawnTabArgs& 
 {
 	saveGame = Cast<USceneManagerSaveGame>(UGameplayStatics::CreateSaveGameObject(USceneManagerSaveGame::StaticClass()));
 	
+	auto OnTabClosed = [this](TSharedRef<SDockTab>)
+	{
+		// Tab closed - leave snapshot mode
+		SaveGameData();
+	};
+
 	FText WidgetText = FText::Format(
 		LOCTEXT("WindowWidgetText", "Add code to {0} in {1} to override this window's contents"),
 		FText::FromString(TEXT("FSceneManagerModule::OnSpawnPluginTab")),
 		FText::FromString(TEXT("SceneManager.cpp"))
 		);
 
-	return SNew(SDockTab)
+
+
+	TSharedPtr<SDockTab> dockTab;
+
+	 SAssignNew(dockTab,SDockTab)
 		.TabRole(ETabRole::NomadTab)
+		.OnTabClosed_Lambda(OnTabClosed)
 		[
 			// Put your tab content here!
 			SNew(SBox)
@@ -109,6 +122,10 @@ TSharedRef<SDockTab> FSceneManagerModule::OnSpawnPluginTab(const FSpawnTabArgs& 
 				SAssignNew(SceneManagerTools,SSceneManagerTools)
 			]
 		];
+
+	 LoadGameData();
+
+	 return dockTab.ToSharedRef();
 
 }
 
@@ -306,13 +323,22 @@ void FSceneManagerModule::SaveGameData()
 {
 	if (saveGame)
 	{
+		UE_LOG(LogTemp,Warning,TEXT("SaveGameData"));
 		UGameplayStatics::SaveGameToSlot(saveGame, TEXT("TestSlot"), 0);
 	}
 }
 
 void FSceneManagerModule::LoadGameData()
 {
+	UE_LOG(LogTemp, Warning, TEXT("LoadGameData"));
 	saveGame = Cast<USceneManagerSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("TestSlot"), 0));
+
+	if (saveGame == nullptr)
+	{
+		return;
+	}
+
+	SceneManagerTools->ClearMaterialGroup();
 
 	for (TPair<FString, FMaterialPlanInfo> plan : saveGame->PlanList)
 	{

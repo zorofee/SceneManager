@@ -98,5 +98,8 @@ private:
 public:
 	void AddMaterialGroup(const FMaterialGroupInfo& groupInfo);
 
+	void ClearMaterialGroup();
+
+	int32 Timer = 0;
 
 };

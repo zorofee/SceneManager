@@ -57,4 +57,6 @@ public:
 	TSharedPtr<FMaterialGroupInfo> m_GroupInfo;
 
 	void AddMaterialInstanceByInfo(const FMaterialInfo& matInfo);
+
+	void ClearMaterialGroupItems();
 };

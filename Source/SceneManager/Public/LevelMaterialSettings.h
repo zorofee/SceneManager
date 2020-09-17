@@ -17,4 +17,6 @@ class ULevelMaterialSettings : public UObject
 public:
 	UPROPERTY(EditAnywhere, Category = "MatIns")
 		UMaterialInstance* material;
+
+
 };

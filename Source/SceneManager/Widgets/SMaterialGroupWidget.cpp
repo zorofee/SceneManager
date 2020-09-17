@@ -40,6 +40,7 @@ void SMaterialGroupWidget::Construct(const FArguments& InArgs, const TSharedPtr<
 	[
 		SNew(SBorder)
 		.BorderImage(FEditorStyle::GetBrush("ToolPanel.DarkGroupBorder"))
+		.Padding(FMargin(10,5))
 		[
 			SNew(SVerticalBox)
 
@@ -133,4 +134,10 @@ void SMaterialGroupWidget::AddMaterialInstanceByInfo(const FMaterialInfo& matInf
 	MatInfo->VectorParams = matInfo.VectorParams;
 	FilteredItems.Emplace(MatInfo);
 	/*ListView->RequestListRefresh();*/
+}
+
+
+void SMaterialGroupWidget::ClearMaterialGroupItems()
+{
+
 }

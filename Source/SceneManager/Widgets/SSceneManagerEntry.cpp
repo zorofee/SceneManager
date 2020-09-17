@@ -22,6 +22,15 @@ void SSceneManagerTools::Tick(const FGeometry& AllottedGeometry, const double In
 	{
 		UpdateCategoryContent();
 	}
+
+	//Timer++;
+	//if (Timer > 240)
+	//{
+	//	//×Ô¶¯±£´æ
+	//	DelegateManager::Get()->SaveGameData.Broadcast();
+	//	Timer = 0;
+	//}
+
 }
 
 void SSceneManagerTools::Construct(const FArguments& InArgs)
@@ -390,6 +399,12 @@ FReply SSceneManagerTools::TestReadData()
 {
 	DelegateManager::Get()->LoadGameData.Broadcast();
 	return FReply::Handled();
+}
+
+void SSceneManagerTools::ClearMaterialGroup()
+{
+	MatGroupItems.Empty();
+	ListView->RequestListRefresh();
 }
 
 

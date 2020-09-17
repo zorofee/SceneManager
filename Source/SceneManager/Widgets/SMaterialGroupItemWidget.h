@@ -5,8 +5,6 @@
 #include "Widgets/Layout/SUniformGridPanel.h"
 #include "DataStructures.h"
 #include "LevelMaterialSettings.h"
-#include "Widgets/Colors/SColorBlock.h"
-#include "DelegateManager.h"
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
 
@@ -21,8 +19,6 @@ public:
 	SLATE_END_ARGS()
 
 		void Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialInfo>& InItem);
-
-
 };
 
 
@@ -43,15 +39,21 @@ private:
 		Widget call back events
 	*/
 
-
 	void OnFinishedChangingProperties(const FPropertyChangedEvent& InEvent);
 
 	void OnScalarValueChanged(float value, FString name);
 
-	FReply OnClickColorBlock(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent, FString name);
+	void OnScalarValueCommitted(float NewEqualValue, ETextCommit::Type CommitType, FString name);
+
+	FReply OnClickColorBlock(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent, FString name,FLinearColor defaultColor);
+
+	void OnColorPickerWindowClosed(const TSharedRef<SWindow>& Window);
 
 	void OnSetColorFromColorPicker(FLinearColor NewColor, FString name);
 
+	TSharedRef<SHorizontalBox> GetScalarParamSlot(FString name, float value);
+
+	TSharedRef<SHorizontalBox> GetVectorParamSlot(FString name, FLinearColor value);
 
 
 	void LoadMaterialInstanceByInfo();
@@ -60,26 +62,22 @@ private:
 
 	void AddParamsToSlot();
 
-	FReply DeleteCurrentMat();
+	void SetMaterialInstanceScalarParam(FString name, float scalar);
 
+	void SetMaterialInstanceVectorParam(FString name, FLinearColor color);
 
-	TSharedRef<SHorizontalBox> GetScalarParamSlot(FString name, float value);
-
-	TSharedRef<SHorizontalBox> GetVectorParamSlot(FString name, FLinearColor value);
-
+	void SaveMaterialInstance();
 
 private:
-	FLinearColor CachedColor = FLinearColor(1.0, 0.1, 0.1, 1.0);
 
 	TSharedPtr<SImage> ColorImage;
 
 	TSharedPtr<SUniformGridPanel> ParamContainer;
 
-
 	ULevelMaterialSettings* lms;
 
 	TSharedPtr<FMaterialInfo> m_MaterialInfo;
 
-
+	FReply OnTest();
 
 };

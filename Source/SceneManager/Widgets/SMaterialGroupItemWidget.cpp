@@ -7,13 +7,10 @@
 #include "Widgets/Input/SSpinBox.h"
 #include "Widgets/Colors/SColorPicker.h"
 #include "Materials/MaterialInstance.h"
-
 #include "Kismet/GameplayStatics.h"
 #include "SceneManagerSaveGame.h"
-
-#include "Engine/World.h"
-#include "Engine/StaticMeshActor.h"
-#include "Materials/MaterialInstanceDynamic.h"
+#include "Materials/MaterialInstanceConstant.h"
+#include "DelegateManager.h"
 
 
 void SMaterialGroupItemEntry::Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialInfo>& InItem)
@@ -63,6 +60,15 @@ void SMaterialGroupItemWidget::Construct(const FArguments& InArgs, const TShared
 			.SlotPadding(2)
 		]
 
+	
+		//测试用
+		/*+ SVerticalBox::Slot()
+		.AutoHeight()
+		[
+			SNew(SButton)
+			.OnClicked(this, &SMaterialGroupItemWidget::OnTest)
+		]
+*/
 		];
 
 	
@@ -72,6 +78,17 @@ void SMaterialGroupItemWidget::Construct(const FArguments& InArgs, const TShared
 		LoadMaterialInstanceByInfo();
 	}
 
+}
+
+FReply SMaterialGroupItemWidget::OnTest()
+{
+	UE_LOG(LogTemp,Warning,TEXT("Material instance is %s , %s"),*lms->material->GetPathName(),*m_MaterialInfo->MatPath);
+	UObject* loadMat = StaticLoadObject(UMaterialInstanceConstant::StaticClass(), NULL, TEXT("/Game/Grass_Ins.Grass_Ins"));
+	if (loadMat != nullptr)
+	{
+		//lms->material = Cast<UMaterialInstanceConstant>(loadMat);
+	}
+	return FReply::Handled();
 }
 
 
@@ -89,7 +106,9 @@ void SMaterialGroupItemWidget::SaveMaterialInfo(const TSharedPtr<const FMaterial
 
 void SMaterialGroupItemWidget::OnFinishedChangingProperties(const FPropertyChangedEvent& InEvent)
 {
+	UE_LOG(LogTemp,Warning,TEXT("OnFinishedChangingProperties`````````"));
 	FString originPath = m_MaterialInfo->MatPath;
+
 	AnalysisMaterialParams();
 
 	UE_LOG(LogTemp, Warning, TEXT("O : %s, C : %s"), *originPath, *m_MaterialInfo->MatPath);
@@ -125,7 +144,7 @@ TSharedRef<SHorizontalBox> SMaterialGroupItemWidget::GetScalarParamSlot(FString 
 		//param1
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
-		.HAlign(EHorizontalAlignment::HAlign_Center)
+		.HAlign(EHorizontalAlignment::HAlign_Left)
 		.VAlign(EVerticalAlignment::VAlign_Bottom)
 		[
 			SNew(STextBlock)
@@ -140,12 +159,13 @@ TSharedRef<SHorizontalBox> SMaterialGroupItemWidget::GetScalarParamSlot(FString 
 		]
 
 	+ SHorizontalBox::Slot()
-		.AutoWidth()
+		.Padding(10,0,10, 0)
 		[
 		SNew(SSpinBox<float>)
 		.OnValueChanged(this, &SMaterialGroupItemWidget::OnScalarValueChanged, name)
-		.MinValue(-100)
-		.MaxValue(100)
+		.OnValueCommitted(this, &SMaterialGroupItemWidget::OnScalarValueCommitted, name)
+		.MinValue(0)
+		.MaxValue(1)
 		.Value(value)
 		]
 
@@ -166,7 +186,7 @@ TSharedRef<SHorizontalBox> SMaterialGroupItemWidget::GetVectorParamSlot(FString 
 
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
-		.HAlign(EHorizontalAlignment::HAlign_Center)
+		.HAlign(EHorizontalAlignment::HAlign_Left)
 		.VAlign(EVerticalAlignment::VAlign_Bottom)
 		[
 			SNew(STextBlock)
@@ -182,11 +202,13 @@ TSharedRef<SHorizontalBox> SMaterialGroupItemWidget::GetVectorParamSlot(FString 
 
 
 	+ SHorizontalBox::Slot()
-		.AutoWidth()
+	.Padding(10, 0, 10, 0)
+
 		[
 			SAssignNew(ColorImage, SImage)
+			
 			.ColorAndOpacity(FSlateColor(value))
-			.OnMouseButtonDown(this, &SMaterialGroupItemWidget::OnClickColorBlock, name)
+			.OnMouseButtonDown(this, &SMaterialGroupItemWidget::OnClickColorBlock, name,value)
 		];
 }
 
@@ -195,62 +217,49 @@ void SMaterialGroupItemWidget::OnScalarValueChanged(float value, FString name)
 	m_MaterialInfo->ScalarParams[name] = value;
 	DelegateManager::Get()->OnMatParamChanged.Broadcast(m_MaterialInfo);
 
-	
-	
-	//修改场景中的动态材质实例
-	TArray<AActor*> actorList;
-	UWorld* World = GEditor->GetEditorWorldContext().World();
-	ULevel* Level = World->GetCurrentLevel();
+	SetMaterialInstanceScalarParam(name, value);
+}
 
-	UGameplayStatics::GetAllActorsOfClass(World, AStaticMeshActor::StaticClass(), actorList);
-	UE_LOG(LogTemp, Warning, TEXT("Actor num is %d"), actorList.Num());
-	for (size_t i = 0; i < actorList.Num(); i++)
-	{
-		AStaticMeshActor* meshActor = Cast<AStaticMeshActor>(actorList[i]);
-		TArray<UMaterialInterface*> mats = meshActor->GetStaticMeshComponent()->GetMaterials();
-		for (size_t j = 0; j < mats.Num(); j++)
-		{
-			if (UMaterialInstance* DynMaterial = Cast<UMaterialInstance>(mats[j]))
-			{
-				if(DynMaterial == lms->material)
-					UE_LOG(LogTemp,Warning,TEXT("DYN %s, LMS %s "), *DynMaterial->GetName(), *lms->material->GetName());
-				
-				meshActor->GetStaticMeshComponent()->SetScalarParameterValueOnMaterials(FName(name),value);
-
-			}
-		}
-	}
-
+void SMaterialGroupItemWidget::OnScalarValueCommitted(float NewEqualValue, ETextCommit::Type CommitType, FString name)
+{
+	SaveMaterialInstance();
 }
 
 
-FReply SMaterialGroupItemWidget::OnClickColorBlock(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent, FString name)
+FReply SMaterialGroupItemWidget::OnClickColorBlock(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent, FString name, FLinearColor defaultColor)
 {
 	FColorPickerArgs PickerArgs;
 	{
 		PickerArgs.bUseAlpha = true;
-		PickerArgs.bOnlyRefreshOnOk = true;
+		PickerArgs.bOnlyRefreshOnOk = false;
+		PickerArgs.bOnlyRefreshOnMouseUp = true;
+
 		PickerArgs.DisplayGamma = TAttribute<float>::Create(TAttribute<float>::FGetter::CreateUObject(GEngine, &UEngine::GetDisplayGamma));
 		PickerArgs.OnColorCommitted = FOnLinearColorValueChanged::CreateSP(this, &SMaterialGroupItemWidget::OnSetColorFromColorPicker, name);
-		PickerArgs.InitialColorOverride = CachedColor;
+		PickerArgs.OnColorPickerWindowClosed = FOnWindowClosed::CreateSP(this, &SMaterialGroupItemWidget::OnColorPickerWindowClosed);
+		PickerArgs.InitialColorOverride = defaultColor;
 		PickerArgs.ParentWidget = ColorImage;
 	}
 
 	OpenColorPicker(PickerArgs);
 	return FReply::Handled();
-
 }
 
+void SMaterialGroupItemWidget::OnColorPickerWindowClosed(const TSharedRef<SWindow>& Window)
+{
+	SaveMaterialInstance();
+}
 
 void SMaterialGroupItemWidget::OnSetColorFromColorPicker(FLinearColor NewColor,FString name)
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnSetColorFromColorPicker %s"), *NewColor.ToString());
-	CachedColor = NewColor;
-	ColorImage->SetColorAndOpacity(CachedColor);
-
+	ColorImage->SetColorAndOpacity(NewColor);
 	m_MaterialInfo->VectorParams[name] = NewColor;
 	DelegateManager::Get()->OnMatParamChanged.Broadcast(m_MaterialInfo);
+
+	SetMaterialInstanceVectorParam(name,NewColor);
+
 }
+
 
 void SMaterialGroupItemWidget::LoadMaterialInstanceByInfo()
 {
@@ -259,8 +268,8 @@ void SMaterialGroupItemWidget::LoadMaterialInstanceByInfo()
 	if (loadMat != nullptr)
 	{
 		lms->material = Cast<UMaterialInstance>(loadMat);
+		AddParamsToSlot();
 	}
-	AddParamsToSlot();
 }
 
 
@@ -325,38 +334,110 @@ void SMaterialGroupItemWidget::AnalysisMaterialParams()
 
 void SMaterialGroupItemWidget::AddParamsToSlot()
 {
-	int i = 0 , j = 0;
+	int i = 0 , j = 0 , col = 2;
 	for (TPair<FString, FLinearColor> item : m_MaterialInfo->VectorParams)
 	{
-		ParamContainer->AddSlot(i++,j)
+		ParamContainer->AddSlot(i,j)
 			//.AutoHeight()
 		[
 			GetVectorParamSlot(item.Key,item.Value)
 		];
+		i += 1;
+		if (i == col)
+		{
+			i = 0;
+			j++;
+		}
 	}
 
 	for (TPair<FString, float> item : m_MaterialInfo->ScalarParams)
 	{
-		ParamContainer->AddSlot(i++,j)
+		ParamContainer->AddSlot(i,j)
 			//.AutoHeight()
 		[
 			GetScalarParamSlot(item.Key, item.Value)
 		];
+		i += 1;
+		if (i == col)
+		{
+			i = 0;
+			j++;
+		}
 	}
-
-	//暂时不需要button,可以选择材质球上的clear删除
-	/*ParamContainer->AddSlot(i++, j)
-	[
-		SNew(SButton)
-		.Text(FText::FromString(TEXT("Delete")))
-		.OnClicked(this,&SMaterialGroupItemWidget::DeleteCurrentMat)
-	]
-	;*/
 }
 
-FReply SMaterialGroupItemWidget::DeleteCurrentMat()
-{
 
-	DelegateManager::Get()->DeleteSceneMatInstance.Broadcast(m_MaterialInfo);
-	return FReply::Handled();
+void SMaterialGroupItemWidget::SetMaterialInstanceScalarParam(FString name, float scalar)
+{
+	//修改资源浏览器中的材质实例
+	UMaterialInstanceConstant* matInsConstant = Cast<UMaterialInstanceConstant>(lms->material);
+	TArray<FMaterialParameterInfo> ParameterInfo;
+	TArray<FGuid> ParameterGuids;
+	FString GroupName;
+	FString ParamName;
+
+	//Get scalar parameters name and value
+	matInsConstant->GetAllScalarParameterInfo(ParameterInfo, ParameterGuids);
+
+
+	for (size_t i = 0; i < ParameterInfo.Num(); i++)
+	{
+		FName groupName;
+		matInsConstant->GetGroupName(ParameterInfo[i], groupName);
+
+		GroupName = groupName.ToString();
+		if (GroupName.Equals(TEXT("LevelMaterial")))
+		{
+			ParamName = ParameterInfo[i].Name.ToString();
+			if (ParamName == name)
+			{
+				matInsConstant->SetScalarParameterValueEditorOnly(ParameterInfo[i], scalar);
+			}
+		}
+	}
+}
+
+void SMaterialGroupItemWidget::SetMaterialInstanceVectorParam(FString name, FLinearColor color)
+{
+	UE_LOG(LogTemp, Warning, TEXT("SetMaterialInstanceVectorParam "));
+	//修改资源浏览器中的材质实例
+	UMaterialInstanceConstant* matInsConstant = Cast<UMaterialInstanceConstant>(lms->material);
+	TArray<FMaterialParameterInfo> ParameterInfo;
+	TArray<FGuid> ParameterGuids;
+	FString GroupName;
+	FString ParamName;
+
+	//Get scalar parameters name and value
+	matInsConstant->GetAllVectorParameterInfo(ParameterInfo, ParameterGuids);
+
+
+	for (size_t i = 0; i < ParameterInfo.Num(); i++)
+	{
+		FName groupName;
+		matInsConstant->GetGroupName(ParameterInfo[i], groupName);
+
+		GroupName = groupName.ToString();
+		if (GroupName.Equals(TEXT("LevelMaterial")))
+		{
+			ParamName = ParameterInfo[i].Name.ToString();
+			if (ParamName == name)
+			{
+				matInsConstant->SetVectorParameterValueEditorOnly(ParameterInfo[i], color);
+			}
+		}
+	}
+}
+
+void SMaterialGroupItemWidget::SaveMaterialInstance()
+{
+	UMaterialInstanceConstant* matInsConstant = Cast<UMaterialInstanceConstant>(lms->material);
+	FString matName = matInsConstant->GetName();
+	FString matPath = matInsConstant->GetPathName();
+	TArray<FString> splitPath;
+	matPath.ParseIntoArray(splitPath, TEXT("."));
+	FString PackagePath = splitPath[0];
+	FString FileName = splitPath[1];
+	FString FilePath = matPath.Replace(TEXT("/Game/"), *FPaths::ProjectContentDir()).Replace(*FString::Printf(TEXT(".%s"), *FileName), TEXT(".uasset"));
+	UE_LOG(LogTemp, Warning, TEXT("SaveMaterialInstance %s ,  %s"), *PackagePath, *FilePath);
+	GEngine->Exec(NULL, *FString::Printf(TEXT("OBJ SAVEPACKAGE PACKAGE=\"%s\" FILE=\"%s\" SILENT=true"), *PackagePath, *FilePath));
 }

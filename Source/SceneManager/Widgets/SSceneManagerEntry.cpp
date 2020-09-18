@@ -10,6 +10,7 @@
 #include "Widgets/Input/SEditableTextBox.h"
 #include "DelegateManager.h"
 
+#include "Widgets/Layout/SScrollBox.h"
 
 
 #define LOCTEXT_NAMESPACE "FSceneManagerModule"
@@ -83,8 +84,9 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 	}
 
 	TSharedRef<SScrollBar> ScrollBar = SNew(SScrollBar)
-		.Thickness(FVector2D(9.0f, 9.0f));
-
+		.Thickness(FVector2D(5.0f, 5.0f))
+		.AlwaysShowScrollbar(false)
+		;
 
 	ChildSlot
 	[
@@ -174,36 +176,41 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 			
 							+ SHorizontalBox::Slot()
 							[
-								SNew(SVerticalBox)
-
-								//material group list
-								+ SVerticalBox::Slot()
+								SNew(SScrollBox)
+								.ExternalScrollbar(ScrollBar)
+								+SScrollBox::Slot()
 								[
-									SAssignNew(ListView, SListView<TSharedPtr<FMaterialGroupInfo>>)
-									.ListItemsSource(&MatGroupItems)
-									.OnGenerateRow(this, &SSceneManagerTools::OnGenerateWidgetForItem)
-									.ExternalScrollbar(ScrollBar)
-								]
 
-								+SVerticalBox::Slot()
-								.AutoHeight()
-								[
-									SNew(SHorizontalBox)
-									+SHorizontalBox::Slot()
-									.AutoWidth()
+									SNew(SVerticalBox)
+
+									//material group list
+									+ SVerticalBox::Slot()
 									[
-										SNew(SButton)
-										.Text(FText::FromString("+ New Group"))
-										.OnClicked(this,&SSceneManagerTools::OnAddGroupNameButtonClicked)
-										.ContentPadding(4.0f)
+										SAssignNew(ListView, SListView<TSharedPtr<FMaterialGroupInfo>>)
+										.ListItemsSource(&MatGroupItems)
+										.OnGenerateRow(this, &SSceneManagerTools::OnGenerateWidgetForItem)
 									]
-									
-									+SHorizontalBox::Slot()
-									.AutoWidth()
-									.Padding(10,0,0,0)
+
+									+ SVerticalBox::Slot()
+									.AutoHeight()
 									[
-										SAssignNew(GroupNameText,SEditableTextBox)
-										.HintText(FText::FromString("Add new group name"))
+										SNew(SHorizontalBox)
+										+ SHorizontalBox::Slot()
+										.AutoWidth()
+										[
+											SNew(SButton)
+											.Text(FText::FromString("+ New Group"))
+											.OnClicked(this, &SSceneManagerTools::OnAddGroupNameButtonClicked)
+											.ContentPadding(4.0f)
+										]
+
+										+ SHorizontalBox::Slot()
+										.AutoWidth()
+										.Padding(10, 0, 0, 0)
+										[
+											SAssignNew(GroupNameText, SEditableTextBox)
+											.HintText(FText::FromString("Add new group name"))
+										]
 									]
 								]
 							]
@@ -248,8 +255,7 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 
 
 
-	//AddPlanData(FString::Printf(TEXT("RedPlan")));
-	DelegateManager::Get()->AddSceneMatPlan.Broadcast(TEXT("RedPlan"));
+	//DelegateManager::Get()->AddSceneMatPlan.Broadcast(TEXT("RedPlan"));
 }
 
 

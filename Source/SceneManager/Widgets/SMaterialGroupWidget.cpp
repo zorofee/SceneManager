@@ -42,41 +42,52 @@ void SMaterialGroupWidget::Construct(const FArguments& InArgs, const TSharedPtr<
 		.BorderImage(FEditorStyle::GetBrush("ToolPanel.DarkGroupBorder"))
 		.Padding(FMargin(10,5))
 		[
-			SNew(SVerticalBox)
 
-			//material group list item
-			+ SVerticalBox::Slot()
+			SNew(SHorizontalBox)
+			+SHorizontalBox::Slot()
 			[
-				SAssignNew(ListView, SListView<TSharedPtr<FMaterialInfo>>)
-				.ListItemsSource(&FilteredItems)
-				.OnGenerateRow(this, &SMaterialGroupWidget::OnGenerateWidgetForItem)
-			]
+				SNew(SVerticalBox)
 
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			[
-				SNew(SHorizontalBox)
-				+SHorizontalBox::Slot()
-				.AutoWidth()
+				+ SVerticalBox::Slot()
+				.AutoHeight()
 				[
-					SNew(SButton)
-					.OnClicked(this, &SMaterialGroupWidget::OnAddGroupItemButtonClicked)
-					.Text(FText::FromString(TEXT("+ New Mat")))
-					.ContentPadding(4.0f)
+					SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					[
+						SNew(SButton)
+						.OnClicked(this, &SMaterialGroupWidget::OnAddGroupItemButtonClicked)
+						.Text(FText::FromString(TEXT("+ New Mat")))
+						.ContentPadding(4.0f)
+					]
+
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(40, 0, 0, 0)
+					[
+						SNew(SButton)
+						.OnClicked(this, &SMaterialGroupWidget::OnRemoveGroupButtonClicked)
+						.Text(FText::FromString(TEXT("Remove Group")))
+						.ContentPadding(4.0f)
+					]
 				]
 
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.Padding(40,0,0,0)
-				[
-					SNew(SButton)
-					.OnClicked(this, &SMaterialGroupWidget::OnRemoveGroupButtonClicked)
-					.Text(FText::FromString(TEXT("Remove Group")))
-					.ContentPadding(4.0f)
-				]
-			]
 
-			
+
+				//material group list item
+				+SVerticalBox::Slot()
+				[
+					SNew(SBorder)
+					[
+						SAssignNew(ListView, SListView<TSharedPtr<FMaterialInfo>>)
+						.ListItemsSource(&FilteredItems)
+						.OnGenerateRow(this, &SMaterialGroupWidget::OnGenerateWidgetForItem)
+					]
+				]
+
+
+
+			]
 		]
 	];
 

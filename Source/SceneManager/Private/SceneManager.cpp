@@ -164,39 +164,33 @@ void FSceneManagerModule::RegisterMenus()
 
 
 
-
-
-
-
-
-
 void FSceneManagerModule::AddPlanData(FString planName)
 {
 
 	FMaterialPlanInfo planData;
 	planData.Name = planName;
-	saveGame->PlanList.Emplace(planName, planData);
+	PlanList.Emplace(planName, planData);
 }
 
 
 void FSceneManagerModule::AddMatGroupData(TSharedPtr<FMaterialGroupInfo> groupInfo)
 {
 
-	if (saveGame->PlanList.Contains(groupInfo->Parent))
+	if (PlanList.Contains(groupInfo->Parent))
 	{
 		FMaterialGroupInfo groupData;
 		groupData.GroupName = groupInfo->GroupName;
 		groupData.Parent = groupInfo->Parent;
-		saveGame->PlanList[groupInfo->Parent].GroupList.Emplace(groupData.GroupName, groupData);
+		PlanList[groupInfo->Parent].GroupList.Emplace(groupData.GroupName, groupData);
 	}
 }
 
 void FSceneManagerModule::AddMatInstanceData(TSharedPtr<FMaterialInfo> matInfo)
 {
 
-	if (saveGame->PlanList.Contains(matInfo->ParentPlan))
+	if (PlanList.Contains(matInfo->ParentPlan))
 	{
-		if (saveGame->PlanList[matInfo->ParentPlan].GroupList.Contains(matInfo->ParentGroup))
+		if (PlanList[matInfo->ParentPlan].GroupList.Contains(matInfo->ParentGroup))
 		{
 			FMaterialInfo matData;
 			matData.MatPath = matInfo->MatPath;
@@ -204,7 +198,7 @@ void FSceneManagerModule::AddMatInstanceData(TSharedPtr<FMaterialInfo> matInfo)
 			matData.ParentPlan = matInfo->ParentPlan;
 			matData.ScalarParams = matInfo->ScalarParams;
 			matData.VectorParams = matInfo->VectorParams;
-			saveGame->PlanList[matInfo->ParentPlan].GroupList[matInfo->ParentGroup].MatList.Emplace(matInfo->MatPath, matData);
+			PlanList[matInfo->ParentPlan].GroupList[matInfo->ParentGroup].MatList.Emplace(matInfo->MatPath, matData);
 		}
 	}
 }
@@ -214,13 +208,13 @@ void FSceneManagerModule::SetMatScalarParam(TSharedPtr<FMaterialInfo> matInfo)
 	FString plan = matInfo->ParentPlan;
 	FString group = matInfo->ParentGroup;
 	FString path = matInfo->MatPath;
-	if (saveGame->PlanList.Contains(plan))
+	if (PlanList.Contains(plan))
 	{
-		if (saveGame->PlanList[plan].GroupList.Contains(group))
+		if (PlanList[plan].GroupList.Contains(group))
 		{
-			if (saveGame->PlanList[plan].GroupList[group].MatList.Contains(path))
+			if (PlanList[plan].GroupList[group].MatList.Contains(path))
 			{
-				saveGame->PlanList[plan].GroupList[group].MatList[path] = *matInfo;
+				PlanList[plan].GroupList[group].MatList[path] = *matInfo;
 			}
 		}
 	}
@@ -230,11 +224,11 @@ void FSceneManagerModule::DeleteMatGroup(TSharedPtr<FMaterialGroupInfo> matInfo)
 {
 	FString plan = matInfo->Parent;
 	FString group = matInfo->GroupName;
-	if (saveGame->PlanList.Contains(plan))
+	if (PlanList.Contains(plan))
 	{
-		if (saveGame->PlanList[plan].GroupList.Contains(group))
+		if (PlanList[plan].GroupList.Contains(group))
 		{
-			saveGame->PlanList[plan].GroupList.Remove(group);
+			PlanList[plan].GroupList.Remove(group);
 
 		}
 	}
@@ -243,11 +237,10 @@ void FSceneManagerModule::DeleteMatGroup(TSharedPtr<FMaterialGroupInfo> matInfo)
 	重新刷新
 	*/
 
-	//SceneManagerTools->ClearChildren();
 	SceneManagerTools->MatGroupItems.Empty();
 	SceneManagerTools->ListView->RequestListRefresh();
 
-	for (TPair<FString, FMaterialPlanInfo> iterator : saveGame->PlanList)
+	for (TPair<FString, FMaterialPlanInfo> iterator : PlanList)
 	{
 		for (TPair<FString, FMaterialGroupInfo> groupIt : iterator.Value.GroupList)
 		{
@@ -265,27 +258,26 @@ void FSceneManagerModule::DeleteMatInstance(TSharedPtr<FMaterialInfo> matInfo)
 	FString plan = matInfo->ParentPlan;
 	FString group = matInfo->ParentGroup;
 	FString path = matInfo->MatPath;
-	if (saveGame->PlanList.Contains(plan))
+	if (PlanList.Contains(plan))
 	{
-		if (saveGame->PlanList[plan].GroupList.Contains(group))
+		if (PlanList[plan].GroupList.Contains(group))
 		{
-			if (saveGame->PlanList[plan].GroupList[group].MatList.Contains(path))
+			if (PlanList[plan].GroupList[group].MatList.Contains(path))
 			{
-				saveGame->PlanList[plan].GroupList[group].MatList.Remove(path);
+				PlanList[plan].GroupList[group].MatList.Remove(path);
 			}
 		}
 	}
 
 	/*
 	在切换材质球时只需要清空数据
-	
 	在删除材质球时需要调下面的方法
 	*/
 
 	SceneManagerTools->MatGroupItems.Empty();
 	SceneManagerTools->ListView->RequestListRefresh();
 	
-	for (TPair<FString, FMaterialPlanInfo> iterator : saveGame->PlanList)
+	for (TPair<FString, FMaterialPlanInfo> iterator : PlanList)
 	{
 		for (TPair<FString, FMaterialGroupInfo> groupIt : iterator.Value.GroupList)
 		{
@@ -300,17 +292,16 @@ void FSceneManagerModule::DeleteMatInstance(TSharedPtr<FMaterialInfo> matInfo)
 
 void FSceneManagerModule::ReplaceMatInstance(TSharedPtr<FMaterialInfo> matInfo, FString originPath)
 {
-	UE_LOG(LogTemp, Warning, TEXT("REMOVE 11 %d"), matInfo->ScalarParams.Num());
 	FString plan = matInfo->ParentPlan;
 	FString group = matInfo->ParentGroup;
 	FString path = matInfo->MatPath;
-	if (saveGame->PlanList.Contains(plan))
+	if (PlanList.Contains(plan))
 	{
-		if (saveGame->PlanList[plan].GroupList.Contains(group))
+		if (PlanList[plan].GroupList.Contains(group))
 		{
-			if (saveGame->PlanList[plan].GroupList[group].MatList.Contains(originPath))
+			if (PlanList[plan].GroupList[group].MatList.Contains(originPath))
 			{
-				saveGame->PlanList[plan].GroupList[group].MatList.Remove(originPath);
+				PlanList[plan].GroupList[group].MatList.Remove(originPath);
 			}
 		}
 	}
@@ -323,34 +314,49 @@ void FSceneManagerModule::SaveGameData()
 {
 	if (saveGame)
 	{
-		UE_LOG(LogTemp,Warning,TEXT("SaveGameData"));
+		saveGame = Cast<USceneManagerSaveGame>(UGameplayStatics::CreateSaveGameObject(USceneManagerSaveGame::StaticClass()));
+		saveGame->PlanList = PlanList;
+		UE_LOG(LogTemp,Warning,TEXT("SaveGameData PlanList %d"), saveGame->PlanList.Num());
 		UGameplayStatics::SaveGameToSlot(saveGame, TEXT("TestSlot"), 0);
 	}
 }
 
 void FSceneManagerModule::LoadGameData()
 {
-	UE_LOG(LogTemp, Warning, TEXT("LoadGameData"));
 	saveGame = Cast<USceneManagerSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("TestSlot"), 0));
-
 	if (saveGame == nullptr)
 	{
-		return;
+		UE_LOG(LogTemp,Warning,TEXT("Create New SaveGameData"));
+		saveGame = Cast<USceneManagerSaveGame>(UGameplayStatics::CreateSaveGameObject(USceneManagerSaveGame::StaticClass()));
+		AddPlanData(TEXT("RedPlan"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("LoadGameData"));
+		PlanList = saveGame->PlanList;
 	}
 
-	SceneManagerTools->ClearMaterialGroup();
+	RefreshPlanList();
+}
 
-	for (TPair<FString, FMaterialPlanInfo> plan : saveGame->PlanList)
+void FSceneManagerModule::RefreshPlanList()
+{
+	if (PlanList.Num() > 0)
 	{
-		for (TPair<FString, FMaterialGroupInfo> group : plan.Value.GroupList)
+		SceneManagerTools->ClearMaterialGroup();
+		for (TPair<FString, FMaterialPlanInfo> plan : PlanList)
 		{
-			if (SceneManagerTools)
+			for (TPair<FString, FMaterialGroupInfo> group : plan.Value.GroupList)
 			{
-				SceneManagerTools->AddMaterialGroup(group.Value);
+				if (SceneManagerTools)
+				{
+					SceneManagerTools->AddMaterialGroup(group.Value);
+				}
 			}
 		}
 	}
 }
+
 
 #undef LOCTEXT_NAMESPACE
 	

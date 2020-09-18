@@ -35,6 +35,7 @@ private:
 	TSharedPtr<SSceneManagerTools> SceneManagerTools;
 
 	USceneManagerSaveGame* saveGame;
+	//TSharedPtr<USceneManagerSaveGame> saveGame;
 
 	void AddPlanData(FString planName);
 	void AddMatGroupData(TSharedPtr<FMaterialGroupInfo> groupInfo);
@@ -46,7 +47,12 @@ private:
 	void DeleteMatInstance(TSharedPtr<FMaterialInfo> matInfo);
 	void ReplaceMatInstance(TSharedPtr<FMaterialInfo> matInfo,FString originPath);
 
+	void RefreshPlanList();
 
 	void SaveGameData();
 	void LoadGameData();
+
+	FString TestName;
+
+	TMap<FString, FMaterialPlanInfo> PlanList;
 };

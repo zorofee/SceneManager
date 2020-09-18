@@ -48,17 +48,17 @@ void SMaterialGroupItemWidget::Construct(const FArguments& InArgs, const TShared
 			SNew(SVerticalBox)
 
 			+ SVerticalBox::Slot()
-		.AutoHeight()
-		[
-			LevelMatView
-		]
+			.AutoHeight()
+			[
+				LevelMatView
+			]
 
-		+ SVerticalBox::Slot()
-		.AutoHeight()
-		[
-			SAssignNew(ParamContainer, SUniformGridPanel)
-			.SlotPadding(2)
-		]
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			[
+				SAssignNew(ParamContainer, SUniformGridPanel)
+				.SlotPadding(2)
+			]
 
 	
 		//≤‚ ‘”√
@@ -68,7 +68,7 @@ void SMaterialGroupItemWidget::Construct(const FArguments& InArgs, const TShared
 			SNew(SButton)
 			.OnClicked(this, &SMaterialGroupItemWidget::OnTest)
 		]
-*/
+		*/
 		];
 
 	

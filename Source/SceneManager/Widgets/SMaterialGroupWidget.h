@@ -59,4 +59,14 @@ public:
 	void AddMaterialInstanceByInfo(const FMaterialInfo& matInfo);
 
 	void ClearMaterialGroupItems();
+
+
+	bool IsHovered;
+
+	bool bIsItemExpanded = true;
+
+	const FSlateBrush* GetExpanderImage() const;
+
+	FReply OnClickExpanderArrow();
+
 };

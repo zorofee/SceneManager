@@ -3,31 +3,13 @@
 
 #include "SMaterialGroupWidget.h"
 #include "DelegateManager.h"
+#include "Widgets/Views/SExpanderArrow.h"
 
 void SMaterialGroupEntry::Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroupInfo>& GroupInfo)
 {
 	ChildSlot
 	[
-		SNew(SBorder)
-		[
-			SNew(SVerticalBox)
-			
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0, 10, 0, 10)
-			[
-				SNew(STextBlock)
-				.TextStyle(FEditorStyle::Get(), "PlacementBrowser.Tab.Text")
-				.Text(FText::FromString(GroupInfo->GroupName))
-			]
-
-			+ SVerticalBox::Slot()
-			.VAlign(VAlign_Center)
-			.Padding(2, 0, 4, 0)
-			[
-				SNew(SMaterialGroupWidget, GroupInfo)
-			]
-		]
+		SNew(SMaterialGroupWidget, GroupInfo)
 	];
 }
 
@@ -38,57 +20,72 @@ void SMaterialGroupWidget::Construct(const FArguments& InArgs, const TSharedPtr<
 
 	ChildSlot
 	[
-		SNew(SBorder)
-		.BorderImage(FEditorStyle::GetBrush("ToolPanel.DarkGroupBorder"))
-		.Padding(FMargin(10,5))
+		SNew(SVerticalBox)
+
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(0, 10, 0, 10)
 		[
-
 			SNew(SHorizontalBox)
-			+SHorizontalBox::Slot()
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(EVerticalAlignment::VAlign_Center)
 			[
-				SNew(SVerticalBox)
-
-				+ SVerticalBox::Slot()
-				.AutoHeight()
+				SNew(SButton)
+				.ButtonStyle(FCoreStyle::Get(), "NoBorder")
+				.OnClicked(this, &SMaterialGroupWidget::OnClickExpanderArrow)
 				[
-					SNew(SHorizontalBox)
-					+ SHorizontalBox::Slot()
-					.AutoWidth()
-					[
-						SNew(SButton)
-						.OnClicked(this, &SMaterialGroupWidget::OnAddGroupItemButtonClicked)
-						.Text(FText::FromString(TEXT("+ New Mat")))
-						.ContentPadding(4.0f)
-					]
-
-					+ SHorizontalBox::Slot()
-					.AutoWidth()
-					.Padding(40, 0, 0, 0)
-					[
-						SNew(SButton)
-						.OnClicked(this, &SMaterialGroupWidget::OnRemoveGroupButtonClicked)
-						.Text(FText::FromString(TEXT("Remove Group")))
-						.ContentPadding(4.0f)
-					]
+					SNew(SImage)
+					.Image(this, &SMaterialGroupWidget::GetExpanderImage)
+					.ColorAndOpacity(FSlateColor::UseForeground())
 				]
+			]
+			+ SHorizontalBox::Slot()
+			.VAlign(EVerticalAlignment::VAlign_Center)
+			[
+				SNew(STextBlock)
+				.TextStyle(FEditorStyle::Get(), "PlacementBrowser.Tab.Text")
+				.Text(FText::FromString(GroupInfo->GroupName))
+			]
 
 
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			[
+				SNew(SButton)
+				.OnClicked(this, &SMaterialGroupWidget::OnAddGroupItemButtonClicked)
+				.Text(FText::FromString(TEXT("+ New Mat")))
+				.ContentPadding(2.0f)
+			]
 
-				//material group list item
-				+SVerticalBox::Slot()
-				[
-					SNew(SBorder)
-					[
-						SAssignNew(ListView, SListView<TSharedPtr<FMaterialInfo>>)
-						.ListItemsSource(&FilteredItems)
-						.OnGenerateRow(this, &SMaterialGroupWidget::OnGenerateWidgetForItem)
-					]
-				]
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.Padding(40, 0, 0, 0)
+			[
+				SNew(SButton)
+				.OnClicked(this, &SMaterialGroupWidget::OnRemoveGroupButtonClicked)
+				.Text(FText::FromString(TEXT("Remove Group")))
+				.ContentPadding(2.0f)
+			]
 
+			
+		]
 
+		+ SVerticalBox::Slot()
+		.VAlign(VAlign_Center)
+		.Padding(2, 0, 4, 0)
+		[
+			SNew(SBorder)
+			.BorderImage(FEditorStyle::GetBrush("ToolPanel.DarkGroupBorder"))
+			.Padding(FMargin(10, 5))
+			[
 
+				SAssignNew(ListView, SListView<TSharedPtr<FMaterialInfo>>)
+				.ListItemsSource(&FilteredItems)
+				.OnGenerateRow(this, &SMaterialGroupWidget::OnGenerateWidgetForItem)
 			]
 		]
+	
 	];
 
 
@@ -151,4 +148,48 @@ void SMaterialGroupWidget::AddMaterialInstanceByInfo(const FMaterialInfo& matInf
 void SMaterialGroupWidget::ClearMaterialGroupItems()
 {
 
+}
+
+
+FReply SMaterialGroupWidget::OnClickExpanderArrow()
+{
+	ListView->SetVisibility(bIsItemExpanded ? EVisibility::Collapsed : EVisibility::Visible);
+	bIsItemExpanded = !bIsItemExpanded;
+	return FReply::Handled();
+}
+
+const FSlateBrush* SMaterialGroupWidget::GetExpanderImage() const
+{
+	//const bool bIsItemExpanded = true;
+
+	FName ResourceName;
+	if (bIsItemExpanded)
+	{
+		if (IsHovered)
+		{
+			static FName ExpandedHoveredName = "TreeArrow_Expanded_Hovered";
+			ResourceName = ExpandedHoveredName;
+		}
+		else
+		{
+			static FName ExpandedName = "TreeArrow_Expanded";
+			ResourceName = ExpandedName;
+		}
+	}
+	else
+	{
+		if (IsHovered)
+		{
+			static FName CollapsedHoveredName = "TreeArrow_Collapsed_Hovered";
+			ResourceName = CollapsedHoveredName;
+		}
+		else
+		{
+			static FName CollapsedName = "TreeArrow_Collapsed";
+			ResourceName = CollapsedName;
+		}
+	}
+
+	ResourceName = "TreeArrow_Expanded";
+	return FEditorStyle::GetBrush(ResourceName);
 }

@@ -170,6 +170,8 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 						
 						+SHorizontalBox::Slot()
 						.AutoWidth()
+						.Padding(10,10)
+						.VAlign(EVerticalAlignment::VAlign_Center)
 						[
 							SNew(STextBlock)
 							.Text(FText::FromString(TEXT("Current Plan")))
@@ -177,6 +179,8 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 						
 						+SHorizontalBox::Slot()
 						.AutoWidth()
+						.Padding(10, 20)
+						.VAlign(EVerticalAlignment::VAlign_Center)
 						[
 							SAssignNew(PlanComboBox,SComboBox<TSharedPtr<FString>>)
 							.OptionsSource(&SourceComboList)
@@ -303,10 +307,14 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 
 FReply SSceneManagerTools::OnAddPlanNameButtonClicked()
 {
-	UE_LOG(LogTemp,Warning,TEXT("Add plan "));
-	//SourceComboList.Emplace(*PlanNameText->GetText().ToString());
-	SourceComboList.Emplace(MakeShared<FString>(PlanNameText->GetText().ToString()));
-	PlanComboBox->RefreshOptions();
+	FString planName = PlanNameText->GetText().ToString();
+	if (planName != TEXT(""))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Add plan "));
+		//SourceComboList.Emplace(*PlanNameText->GetText().ToString());
+		SourceComboList.Emplace(MakeShared<FString>(planName));
+		PlanComboBox->RefreshOptions();
+	}
 	return FReply::Handled();
 }
 
@@ -319,7 +327,7 @@ void SSceneManagerTools::HandleSourceComboChanged(TSharedPtr<FString> Item, ESel
 {
 	if (Item.IsValid())
 	{
-		// This will call back into this widget to refresh it
+		PlanComboBox->SetSelectedItem(Item);
 		DelegateManager::Get()->RefreshPlanList.Broadcast(*Item);
 	}
 }
@@ -438,15 +446,17 @@ void SSceneManagerTools::UpdateCategoryContent()
 
 FReply SSceneManagerTools::OnAddGroupNameButtonClicked()
 {
-	TSharedPtr<FMaterialGroupInfo> GroupInfo = MakeShareable(new FMaterialGroupInfo());
-	GroupInfo->GroupName = GroupNameText->GetText().ToString();
-	//GroupInfo->Parent = FString::Printf(TEXT("RedPlan"));
-	MatGroupItems.Emplace(GroupInfo);
+	FString groupName = GroupNameText->GetText().ToString();
+	if (groupName != TEXT(""))
+	{
+		TSharedPtr<FMaterialGroupInfo> GroupInfo = MakeShareable(new FMaterialGroupInfo());
+		GroupInfo->GroupName = groupName;
+		MatGroupItems.Emplace(GroupInfo);
 
-	/*这一步要在刷新之前,因为要设置ParentPlan*/
-	DelegateManager::Get()->AddSceneMatGroup.Broadcast(GroupInfo);
-	ListView->RequestListRefresh();
-
+		/*这一步要在刷新之前,因为要设置ParentPlan*/
+		DelegateManager::Get()->AddSceneMatGroup.Broadcast(GroupInfo);
+		ListView->RequestListRefresh();
+	}
 	return FReply::Handled();
 }
 

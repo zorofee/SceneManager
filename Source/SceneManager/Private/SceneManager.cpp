@@ -183,7 +183,7 @@ void FSceneManagerModule::AddMatGroupData(TSharedPtr<FMaterialGroupInfo> groupIn
 		
 		FMaterialGroupInfo groupData;
 		groupData.GroupName = groupInfo->GroupName;
-		groupData.Parent = currentPlan/*groupInfo->Parent*/;
+		groupData.Parent = currentPlan;
 		PlanList[groupInfo->Parent].GroupList.Emplace(groupData.GroupName, groupData);
 	}
 }
@@ -240,12 +240,12 @@ void FSceneManagerModule::DeleteMatGroup(TSharedPtr<FMaterialGroupInfo> matInfo)
 	重新刷新
 	*/
 
-	SceneManagerTools->MatGroupItems.Empty();
-	SceneManagerTools->ListView->RequestListRefresh();
-
-	for (TPair<FString, FMaterialPlanInfo> iterator : PlanList)
+	if (PlanList.Contains(currentPlan))
 	{
-		for (TPair<FString, FMaterialGroupInfo> groupIt : iterator.Value.GroupList)
+		SceneManagerTools->MatGroupItems.Empty();
+		SceneManagerTools->ListView->RequestListRefresh();
+
+		for (TPair<FString, FMaterialGroupInfo> groupIt : PlanList[currentPlan].GroupList)
 		{
 			if (SceneManagerTools)
 			{
@@ -277,12 +277,13 @@ void FSceneManagerModule::DeleteMatInstance(TSharedPtr<FMaterialInfo> matInfo)
 	在删除材质球时需要调下面的方法
 	*/
 
-	SceneManagerTools->MatGroupItems.Empty();
-	SceneManagerTools->ListView->RequestListRefresh();
 	
-	for (TPair<FString, FMaterialPlanInfo> iterator : PlanList)
+	if (PlanList.Contains(currentPlan))
 	{
-		for (TPair<FString, FMaterialGroupInfo> groupIt : iterator.Value.GroupList)
+		SceneManagerTools->MatGroupItems.Empty();
+		SceneManagerTools->ListView->RequestListRefresh();
+
+		for (TPair<FString, FMaterialGroupInfo> groupIt : PlanList[currentPlan].GroupList)
 		{
 			if (SceneManagerTools)
 			{
@@ -319,6 +320,7 @@ void FSceneManagerModule::SaveGameData()
 	{
 		saveGame = Cast<USceneManagerSaveGame>(UGameplayStatics::CreateSaveGameObject(USceneManagerSaveGame::StaticClass()));
 		saveGame->PlanList = PlanList;
+		saveGame->DefaultPlan = currentPlan;
 		UE_LOG(LogTemp,Warning,TEXT("SaveGameData PlanList %d"), saveGame->PlanList.Num());
 		UGameplayStatics::SaveGameToSlot(saveGame, TEXT("TestSlot"), 0);
 	}
@@ -329,17 +331,16 @@ void FSceneManagerModule::LoadGameData(const FString loadPlanName)
 	saveGame = Cast<USceneManagerSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("TestSlot"), 0));
 	if (saveGame == nullptr)
 	{
-		UE_LOG(LogTemp,Warning,TEXT("Create New Default SaveGameData"));
 		saveGame = Cast<USceneManagerSaveGame>(UGameplayStatics::CreateSaveGameObject(USceneManagerSaveGame::StaticClass()));
-		//AddPlanData(defaultPlanName);
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("LoadGameData %s"), *loadPlanName);
 		PlanList = saveGame->PlanList;
+		currentPlan = saveGame->DefaultPlan;
+		RefreshPlanList(currentPlan);
 	}
 
-	//RefreshPlanList(currentPlan);
 }
 
 void FSceneManagerModule::RefreshPlanList(const FString planName)
@@ -348,7 +349,6 @@ void FSceneManagerModule::RefreshPlanList(const FString planName)
 
 	if (!PlanList.Contains(planName))
 	{
-		//PlanList.Emplace(planName);
 		AddPlanData(planName);
 	}
 

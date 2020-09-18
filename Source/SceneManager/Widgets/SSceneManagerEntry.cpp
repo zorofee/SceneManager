@@ -73,6 +73,16 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 	Categories.Emplace(Category);
 
 
+	FString planName3 = FString::Printf(TEXT("BluePlan"));
+	FString planName2 = FString::Printf(TEXT("GreenPlan"));
+	FString planName1 = FString::Printf(TEXT("RedPlan"));
+	FString planName4 = FString::Printf(TEXT("YellowPlan"));
+	SourceComboList.Add(MakeShared<FString>(planName1));
+	SourceComboList.Add(MakeShared<FString>(planName2));
+	SourceComboList.Add(MakeShared<FString>(planName3));
+	SourceComboList.Add(MakeShared<FString>(planName4));
+
+
 	for (int32 i = 0; i < Categories.Num(); i++)
 	{
 
@@ -116,29 +126,26 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 					.AutoHeight()
 					[
 						SNew(SHorizontalBox)
-						+SHorizontalBox::Slot()
-						.AutoWidth()
-						[
-							SNew(SButton)
-							.Text(FText::FromString(TEXT("plan1")))
-							.OnClicked(this, &SSceneManagerTools::OnPlan1Clicked)
-						
-						]
 						+ SHorizontalBox::Slot()
 						.AutoWidth()
 						[
 							SNew(SButton)
-							.Text(FText::FromString(TEXT("plan2")))
-							.OnClicked(this, &SSceneManagerTools::OnPlan2Clicked)
+							.Text(FText::FromString("+ New Plan"))
+							.OnClicked(this, &SSceneManagerTools::OnAddPlanNameButtonClicked)
+							.ContentPadding(4.0f)
 						]
-						+ SHorizontalBox::Slot()
-							.AutoWidth()
-							[
-								SNew(SButton)
-								.Text(FText::FromString(TEXT("plan2")))
-							.OnClicked(this, &SSceneManagerTools::OnPlan3Clicked)
-							]
 
+						+ SHorizontalBox::Slot()
+						.AutoWidth()
+						.Padding(20, 0, 0, 0)
+						[
+							SAssignNew(PlanNameText, SEditableTextBox)
+							.HintText(FText::FromString("Add new plan name"))
+						]
+						
+
+						/*
+						//测试用
 						+ SHorizontalBox::Slot()
 						.AutoWidth()
 						[
@@ -152,7 +159,7 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 							SNew(SButton)
 							.Text(FText::FromString(TEXT("TestReadData")))
 							.OnClicked(this, &SSceneManagerTools::TestReadData)
-						]
+						]*/
 					]
 					
 					//层名称
@@ -165,13 +172,20 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 						.AutoWidth()
 						[
 							SNew(STextBlock)
-							.Text(FText::FromString(TEXT("Name")))
+							.Text(FText::FromString(TEXT("Current Plan")))
 						]
 						
 						+SHorizontalBox::Slot()
 						.AutoWidth()
 						[
-							SNew(SEditableText)
+							SAssignNew(PlanComboBox,SComboBox<TSharedPtr<FString>>)
+							.OptionsSource(&SourceComboList)
+							.OnGenerateWidget(this, &SSceneManagerTools::GenerateSourceComboItem)
+							.OnSelectionChanged(this, &SSceneManagerTools::HandleSourceComboChanged)
+							[
+								SNew(STextBlock)
+								.Text(FText::FromString(FString::Printf(TEXT("Default"))))
+							]
 						]
 					]
 
@@ -201,28 +215,7 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 										.OnGenerateRow(this, &SSceneManagerTools::OnGenerateWidgetForItem)
 									]
 
-									+ SVerticalBox::Slot()
-									.AutoHeight()
-									.Padding(10,30,0,0)
-									[
-										SNew(SHorizontalBox)
-										+ SHorizontalBox::Slot()
-										.AutoWidth()
-										[
-											SNew(SButton)
-											.Text(FText::FromString("+ New Group"))
-											.OnClicked(this, &SSceneManagerTools::OnAddGroupNameButtonClicked)
-											.ContentPadding(4.0f)
-										]
-
-										+ SHorizontalBox::Slot()
-										.AutoWidth()
-										.Padding(10, 0, 0, 0)
-										[
-											SAssignNew(GroupNameText, SEditableTextBox)
-											.HintText(FText::FromString("Add new group name"))
-										]
-									]
+									
 								]
 							]
 
@@ -233,9 +226,44 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 							]
 						]
 
+
 					]
 
 
+
+					//Add Group Button
+					+SVerticalBox::Slot()
+					.AutoHeight()
+					.Padding(10, 10, 0, 0)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						.AutoWidth()
+						[
+							SNew(SButton)
+							.Text(FText::FromString("+ New Group"))
+							.OnClicked(this, &SSceneManagerTools::OnAddGroupNameButtonClicked)
+							.ContentPadding(4.0f)
+						]
+
+						+ SHorizontalBox::Slot()
+						.AutoWidth()
+						.Padding(10, 0, 0, 0)
+						[
+							SAssignNew(GroupNameText, SEditableTextBox)
+							.HintText(FText::FromString("Add new group name"))
+						]
+					]
+
+
+
+
+
+
+
+
+					/*
+					//其他的面板
 					+ SVerticalBox::Slot()
 					[
 						SAssignNew(LevelLightContent, SBox)
@@ -256,6 +284,13 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 							]
 						]
 					]
+					*/
+
+
+
+
+
+
 
 				]
 			]
@@ -266,6 +301,28 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 
 }
 
+FReply SSceneManagerTools::OnAddPlanNameButtonClicked()
+{
+	UE_LOG(LogTemp,Warning,TEXT("Add plan "));
+	//SourceComboList.Emplace(*PlanNameText->GetText().ToString());
+	SourceComboList.Emplace(MakeShared<FString>(PlanNameText->GetText().ToString()));
+	PlanComboBox->RefreshOptions();
+	return FReply::Handled();
+}
+
+TSharedRef<SWidget> SSceneManagerTools::GenerateSourceComboItem(TSharedPtr<FString> InItem)
+{
+	return SNew(STextBlock).Text(FText::FromString(*InItem));
+}
+
+void SSceneManagerTools::HandleSourceComboChanged(TSharedPtr<FString> Item, ESelectInfo::Type SelectInfo)
+{
+	if (Item.IsValid())
+	{
+		// This will call back into this widget to refresh it
+		DelegateManager::Get()->RefreshPlanList.Broadcast(*Item);
+	}
+}
 
 TSharedRef<ITableRow> SSceneManagerTools::OnGenerateWidgetForItem(TSharedPtr<FMaterialGroupInfo> InItem, const TSharedRef<STableViewBase>& OwnerTable)
 {
@@ -274,6 +331,8 @@ TSharedRef<ITableRow> SSceneManagerTools::OnGenerateWidgetForItem(TSharedPtr<FMa
 		SNew(SMaterialGroupEntry, InItem.ToSharedRef())
 	];
 }
+
+
 
 TSharedRef< SWidget > SSceneManagerTools::CreatePlacementGroupTab(const SceneCategoryInfo& Info)
 {

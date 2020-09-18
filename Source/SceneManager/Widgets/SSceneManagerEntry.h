@@ -7,6 +7,7 @@
 #include "Layout/Visibility.h"
 #include "Widgets/SWidget.h"
 #include "CoreMinimal.h"
+#include "Widgets/Input/SComboBox.h"
 #include "SMaterialGroupWidget.h"
 
 /**
@@ -104,5 +105,16 @@ public:
 	void ClearMaterialGroup();
 
 	int32 Timer = 0;
+
+
+
+private:
+	TSharedPtr<SComboBox<TSharedPtr<FString>>> PlanComboBox;
+	TArray<TSharedPtr<FString>> SourceComboList;
+	TSharedPtr<SEditableTextBox> PlanNameText;
+
+	TSharedRef<SWidget> GenerateSourceComboItem(TSharedPtr<FString> InItem);
+	void HandleSourceComboChanged(TSharedPtr<FString> Item, ESelectInfo::Type SelectInfo);
+	FReply OnAddPlanNameButtonClicked();
 
 };

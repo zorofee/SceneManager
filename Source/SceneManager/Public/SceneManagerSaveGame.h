@@ -19,7 +19,7 @@ class SCENEMANAGER_API USceneManagerSaveGame : public USaveGame
 	
 public:
 	UPROPERTY()
-		FString TestName;
+		FString DefaultPlan;
 
 	UPROPERTY()
 		TMap<FString, FMaterialPlanInfo> PlanList;

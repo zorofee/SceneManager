@@ -47,12 +47,15 @@ private:
 	void DeleteMatInstance(TSharedPtr<FMaterialInfo> matInfo);
 	void ReplaceMatInstance(TSharedPtr<FMaterialInfo> matInfo,FString originPath);
 
-	void RefreshPlanList();
+	void RefreshPlanList(const FString planName);
 
 	void SaveGameData();
-	void LoadGameData();
+	void LoadGameData(const FString loadPlanName = "");
 
-	FString TestName;
 
 	TMap<FString, FMaterialPlanInfo> PlanList;
+
+	FString currentPlan = TEXT("RedPlan");
+
+	FString defaultPlanName = TEXT("Default");
 };

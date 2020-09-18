@@ -94,6 +94,9 @@ private:
 
 	FReply TestReadData();
 	
+	FReply OnPlan1Clicked();
+	FReply OnPlan2Clicked();
+	FReply OnPlan3Clicked();
 
 public:
 	void AddMaterialGroup(const FMaterialGroupInfo& groupInfo);

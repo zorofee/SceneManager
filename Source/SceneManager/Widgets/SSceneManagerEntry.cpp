@@ -121,6 +121,7 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 						[
 							SNew(SButton)
 							.Text(FText::FromString(TEXT("plan1")))
+							.OnClicked(this, &SSceneManagerTools::OnPlan1Clicked)
 						
 						]
 						+ SHorizontalBox::Slot()
@@ -128,7 +129,16 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 						[
 							SNew(SButton)
 							.Text(FText::FromString(TEXT("plan2")))
+							.OnClicked(this, &SSceneManagerTools::OnPlan2Clicked)
 						]
+						+ SHorizontalBox::Slot()
+							.AutoWidth()
+							[
+								SNew(SButton)
+								.Text(FText::FromString(TEXT("plan2")))
+							.OnClicked(this, &SSceneManagerTools::OnPlan3Clicked)
+							]
+
 						+ SHorizontalBox::Slot()
 						.AutoWidth()
 						[
@@ -193,6 +203,7 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 
 									+ SVerticalBox::Slot()
 									.AutoHeight()
+									.Padding(10,30,0,0)
 									[
 										SNew(SHorizontalBox)
 										+ SHorizontalBox::Slot()
@@ -253,9 +264,6 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 
 	ActiveTabName = Categories[0].UniqueHandle;
 
-
-
-	//DelegateManager::Get()->AddSceneMatPlan.Broadcast(TEXT("RedPlan"));
 }
 
 
@@ -283,7 +291,7 @@ TSharedRef< SWidget > SSceneManagerTools::CreatePlacementGroupTab(const SceneCat
 			.Size(FVector2D(1, 30))
 		]
 
-	+ SOverlay::Slot()
+		+ SOverlay::Slot()
 		.Padding(FMargin(6, 0, 15, 0))
 		.VAlign(VAlign_Center)
 		[
@@ -292,7 +300,7 @@ TSharedRef< SWidget > SSceneManagerTools::CreatePlacementGroupTab(const SceneCat
 		.Text(Info.DisplayName)
 		]
 
-	+ SOverlay::Slot()
+		+ SOverlay::Slot()
 		.VAlign(VAlign_Fill)
 		.HAlign(HAlign_Left)
 		[
@@ -373,11 +381,13 @@ FReply SSceneManagerTools::OnAddGroupNameButtonClicked()
 {
 	TSharedPtr<FMaterialGroupInfo> GroupInfo = MakeShareable(new FMaterialGroupInfo());
 	GroupInfo->GroupName = GroupNameText->GetText().ToString();
-	GroupInfo->Parent = FString::Printf(TEXT("RedPlan"));
+	//GroupInfo->Parent = FString::Printf(TEXT("RedPlan"));
 	MatGroupItems.Emplace(GroupInfo);
+
+	/*这一步要在刷新之前,因为要设置ParentPlan*/
+	DelegateManager::Get()->AddSceneMatGroup.Broadcast(GroupInfo);
 	ListView->RequestListRefresh();
 
-	DelegateManager::Get()->AddSceneMatGroup.Broadcast(GroupInfo);
 	return FReply::Handled();
 }
 
@@ -395,6 +405,27 @@ void SSceneManagerTools::AddMaterialGroup(const FMaterialGroupInfo& groupInfo)
 }
 
 
+FReply SSceneManagerTools::OnPlan1Clicked()
+{
+	DelegateManager::Get()->RefreshPlanList.Broadcast(TEXT("RedPlan"));
+
+	return FReply::Handled();
+}
+
+FReply SSceneManagerTools::OnPlan2Clicked()
+{
+	DelegateManager::Get()->RefreshPlanList.Broadcast(TEXT("GreenPlan"));
+
+	return FReply::Handled();
+}
+
+FReply SSceneManagerTools::OnPlan3Clicked()
+{
+	DelegateManager::Get()->RefreshPlanList.Broadcast(TEXT("BluePlan"));
+
+	return FReply::Handled();
+}
+
 FReply SSceneManagerTools::TestSaveData()
 {
 	DelegateManager::Get()->SaveGameData.Broadcast();
@@ -403,7 +434,7 @@ FReply SSceneManagerTools::TestSaveData()
 
 FReply SSceneManagerTools::TestReadData()
 {
-	DelegateManager::Get()->LoadGameData.Broadcast();
+	DelegateManager::Get()->LoadGameData.Broadcast(TEXT("RedPlan"));
 	return FReply::Handled();
 }
 

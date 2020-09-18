@@ -65,6 +65,9 @@ void FSceneManagerModule::StartupModule()
 	if (!DelegateManager::Get()->LoadGameData.IsBound())
 		DelegateManager::Get()->LoadGameData.AddRaw(this, &FSceneManagerModule::LoadGameData);
 
+	if (!DelegateManager::Get()->RefreshPlanList.IsBound())
+		DelegateManager::Get()->RefreshPlanList.AddRaw(this, &FSceneManagerModule::RefreshPlanList);
+
 	if (!DelegateManager::Get()->DeleteSceneMatGroup.IsBound())
 		DelegateManager::Get()->DeleteSceneMatGroup.AddRaw(this, &FSceneManagerModule::DeleteMatGroup);
 
@@ -166,7 +169,6 @@ void FSceneManagerModule::RegisterMenus()
 
 void FSceneManagerModule::AddPlanData(FString planName)
 {
-
 	FMaterialPlanInfo planData;
 	planData.Name = planName;
 	PlanList.Emplace(planName, planData);
@@ -175,12 +177,13 @@ void FSceneManagerModule::AddPlanData(FString planName)
 
 void FSceneManagerModule::AddMatGroupData(TSharedPtr<FMaterialGroupInfo> groupInfo)
 {
-
-	if (PlanList.Contains(groupInfo->Parent))
+	if (PlanList.Contains(currentPlan))
 	{
+		groupInfo->Parent = currentPlan;
+		
 		FMaterialGroupInfo groupData;
 		groupData.GroupName = groupInfo->GroupName;
-		groupData.Parent = groupInfo->Parent;
+		groupData.Parent = currentPlan/*groupInfo->Parent*/;
 		PlanList[groupInfo->Parent].GroupList.Emplace(groupData.GroupName, groupData);
 	}
 }
@@ -321,37 +324,42 @@ void FSceneManagerModule::SaveGameData()
 	}
 }
 
-void FSceneManagerModule::LoadGameData()
+void FSceneManagerModule::LoadGameData(const FString loadPlanName)
 {
 	saveGame = Cast<USceneManagerSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("TestSlot"), 0));
 	if (saveGame == nullptr)
 	{
-		UE_LOG(LogTemp,Warning,TEXT("Create New SaveGameData"));
+		UE_LOG(LogTemp,Warning,TEXT("Create New Default SaveGameData"));
 		saveGame = Cast<USceneManagerSaveGame>(UGameplayStatics::CreateSaveGameObject(USceneManagerSaveGame::StaticClass()));
-		AddPlanData(TEXT("RedPlan"));
+		//AddPlanData(defaultPlanName);
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("LoadGameData"));
+		UE_LOG(LogTemp, Warning, TEXT("LoadGameData %s"), *loadPlanName);
 		PlanList = saveGame->PlanList;
 	}
 
-	RefreshPlanList();
+	//RefreshPlanList(currentPlan);
 }
 
-void FSceneManagerModule::RefreshPlanList()
+void FSceneManagerModule::RefreshPlanList(const FString planName)
 {
-	if (PlanList.Num() > 0)
+	currentPlan = planName;
+
+	if (!PlanList.Contains(planName))
 	{
-		SceneManagerTools->ClearMaterialGroup();
-		for (TPair<FString, FMaterialPlanInfo> plan : PlanList)
+		//PlanList.Emplace(planName);
+		AddPlanData(planName);
+	}
+
+	SceneManagerTools->ClearMaterialGroup();
+	if (PlanList.Contains(planName))
+	{
+		for (TPair<FString, FMaterialGroupInfo> group : PlanList[planName].GroupList)
 		{
-			for (TPair<FString, FMaterialGroupInfo> group : plan.Value.GroupList)
+			if (SceneManagerTools)
 			{
-				if (SceneManagerTools)
-				{
-					SceneManagerTools->AddMaterialGroup(group.Value);
-				}
+				SceneManagerTools->AddMaterialGroup(group.Value);
 			}
 		}
 	}

@@ -45,11 +45,11 @@ private:
 
 	void OnScalarValueCommitted(float NewEqualValue, ETextCommit::Type CommitType, FString name);
 
-	FReply OnClickColorBlock(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent, FString name,FLinearColor defaultColor);
+	FReply OnClickColorBlock(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent, FString name,FLinearColor defaultColor, int32 ColorImageIndex);
 
 	void OnColorPickerWindowClosed(const TSharedRef<SWindow>& Window);
 
-	void OnSetColorFromColorPicker(FLinearColor NewColor, FString name);
+	void OnSetColorFromColorPicker(FLinearColor NewColor, FString name, int32 ColorImageIndex);
 
 	TSharedRef<SHorizontalBox> GetScalarParamSlot(FString name, float value);
 
@@ -58,7 +58,9 @@ private:
 
 	void LoadMaterialInstanceByInfo();
 
-	void AnalysisMaterialParams();
+	void AnalysisMaterialParamsAndPath();
+
+	void ResetMaterialInstanceConstant();
 
 	void AddParamsToSlot();
 
@@ -70,7 +72,7 @@ private:
 
 private:
 
-	TSharedPtr<SImage> ColorImage;
+	TArray<TSharedPtr<SImage>>  ColorImageArray;
 
 	TSharedPtr<SUniformGridPanel> ParamContainer;
 

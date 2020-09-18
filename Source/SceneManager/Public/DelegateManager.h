@@ -6,7 +6,8 @@
 #include "CoreMinimal.h"
 
 DECLARE_MULTICAST_DELEGATE(SaveGameDataEvent)
-DECLARE_MULTICAST_DELEGATE(LoadGameDataEvent)
+DECLARE_MULTICAST_DELEGATE_OneParam(LoadGameDataEvent, FString)
+DECLARE_MULTICAST_DELEGATE_OneParam(RefreshPlanListEvent,FString)
 DECLARE_MULTICAST_DELEGATE_OneParam(AddSceneMatPlanEvent, FString)
 DECLARE_MULTICAST_DELEGATE_OneParam(AddSceneMatGroupEvent, TSharedPtr<FMaterialGroupInfo>)
 DECLARE_MULTICAST_DELEGATE_OneParam(AddSceneMatInstanceEvent, TSharedPtr<FMaterialInfo>)
@@ -42,6 +43,8 @@ public:
 	SaveGameDataEvent SaveGameData;
 
 	LoadGameDataEvent LoadGameData;
+
+	RefreshPlanListEvent RefreshPlanList;
 
 	DeleteSceneMatGroupEvent DeleteSceneMatGroup;
 

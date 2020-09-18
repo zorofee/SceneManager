@@ -106,13 +106,13 @@ void SMaterialGroupItemWidget::SaveMaterialInfo(const TSharedPtr<const FMaterial
 
 void SMaterialGroupItemWidget::OnFinishedChangingProperties(const FPropertyChangedEvent& InEvent)
 {
-	UE_LOG(LogTemp,Warning,TEXT("OnFinishedChangingProperties`````````"));
 	FString originPath = m_MaterialInfo->MatPath;
 
-	AnalysisMaterialParams();
+	AnalysisMaterialParamsAndPath();
 
-	UE_LOG(LogTemp, Warning, TEXT("O : %s, C : %s"), *originPath, *m_MaterialInfo->MatPath);
 
+	//更新数据层
+	DelegateManager::Get()->AddSceneMatInstance.Broadcast(m_MaterialInfo);
 	if (originPath == TEXT(""))
 	{
 		//若之前材质球为空且当前选择材质球不为空，则刷新数据
@@ -181,6 +181,9 @@ TSharedRef<SHorizontalBox> SMaterialGroupItemWidget::GetScalarParamSlot(FString 
 
 TSharedRef<SHorizontalBox> SMaterialGroupItemWidget::GetVectorParamSlot(FString name, FLinearColor value)
 {
+	TSharedPtr<SImage> ColorImage;
+	ColorImageArray.Emplace(ColorImage);
+	int32 index = ColorImageArray.Num() - 1;
 	return
 		SNew(SHorizontalBox)
 
@@ -204,12 +207,11 @@ TSharedRef<SHorizontalBox> SMaterialGroupItemWidget::GetVectorParamSlot(FString 
 	+ SHorizontalBox::Slot()
 	.Padding(10, 0, 10, 0)
 
-		[
-			SAssignNew(ColorImage, SImage)
-			
-			.ColorAndOpacity(FSlateColor(value))
-			.OnMouseButtonDown(this, &SMaterialGroupItemWidget::OnClickColorBlock, name,value)
-		];
+	[
+		SAssignNew(ColorImageArray[index], SImage)
+		.ColorAndOpacity(FSlateColor(value))
+		.OnMouseButtonDown(this, &SMaterialGroupItemWidget::OnClickColorBlock, name,value, index)
+	];
 }
 
 void SMaterialGroupItemWidget::OnScalarValueChanged(float value, FString name)
@@ -226,7 +228,7 @@ void SMaterialGroupItemWidget::OnScalarValueCommitted(float NewEqualValue, EText
 }
 
 
-FReply SMaterialGroupItemWidget::OnClickColorBlock(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent, FString name, FLinearColor defaultColor)
+FReply SMaterialGroupItemWidget::OnClickColorBlock(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent, FString name, FLinearColor defaultColor, int32 ColorImageIndex)
 {
 	FColorPickerArgs PickerArgs;
 	{
@@ -235,10 +237,10 @@ FReply SMaterialGroupItemWidget::OnClickColorBlock(const FGeometry& MyGeometry, 
 		PickerArgs.bOnlyRefreshOnMouseUp = true;
 
 		PickerArgs.DisplayGamma = TAttribute<float>::Create(TAttribute<float>::FGetter::CreateUObject(GEngine, &UEngine::GetDisplayGamma));
-		PickerArgs.OnColorCommitted = FOnLinearColorValueChanged::CreateSP(this, &SMaterialGroupItemWidget::OnSetColorFromColorPicker, name);
+		PickerArgs.OnColorCommitted = FOnLinearColorValueChanged::CreateSP(this, &SMaterialGroupItemWidget::OnSetColorFromColorPicker, name, ColorImageIndex);
 		PickerArgs.OnColorPickerWindowClosed = FOnWindowClosed::CreateSP(this, &SMaterialGroupItemWidget::OnColorPickerWindowClosed);
 		PickerArgs.InitialColorOverride = defaultColor;
-		PickerArgs.ParentWidget = ColorImage;
+		PickerArgs.ParentWidget = ColorImageArray[ColorImageIndex];
 	}
 
 	OpenColorPicker(PickerArgs);
@@ -250,35 +252,54 @@ void SMaterialGroupItemWidget::OnColorPickerWindowClosed(const TSharedRef<SWindo
 	SaveMaterialInstance();
 }
 
-void SMaterialGroupItemWidget::OnSetColorFromColorPicker(FLinearColor NewColor,FString name)
+void SMaterialGroupItemWidget::OnSetColorFromColorPicker(FLinearColor NewColor,FString name, int32 ColorImageIndex)
 {
-	ColorImage->SetColorAndOpacity(NewColor);
+	ColorImageArray[ColorImageIndex]->SetColorAndOpacity(NewColor);
 	m_MaterialInfo->VectorParams[name] = NewColor;
 	DelegateManager::Get()->OnMatParamChanged.Broadcast(m_MaterialInfo);
 
 	SetMaterialInstanceVectorParam(name,NewColor);
-
 }
 
 
 void SMaterialGroupItemWidget::LoadMaterialInstanceByInfo()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Load current material %s"), *m_MaterialInfo->MatPath);
+
 	UObject* loadMat = StaticLoadObject(UMaterialInstance::StaticClass(), NULL, *m_MaterialInfo->MatPath);
 	if (loadMat != nullptr)
 	{
 		lms->material = Cast<UMaterialInstance>(loadMat);
-		AddParamsToSlot();
+		
+		/*先根据保存的数据创建出参数slot,这一步应该要跟当前材质的参数做对比*/
+		AnalysisMaterialParamsAndPath();
+		
+		ResetMaterialInstanceConstant();
 	}
 }
 
-
-void SMaterialGroupItemWidget::AnalysisMaterialParams()
+/*在根据保存的数据刷一遍材质球*/
+void SMaterialGroupItemWidget::ResetMaterialInstanceConstant()
 {
+	for (TPair<FString, FLinearColor> item : m_MaterialInfo->VectorParams)
+	{
+		SetMaterialInstanceVectorParam(item.Key, item.Value);
+	}
 
+	for (TPair<FString, float> item : m_MaterialInfo->ScalarParams)
+	{
+		SetMaterialInstanceScalarParam(item.Key, item.Value);
+	}
+}
+
+/*在读取材质球时,将本地保存的数据与材质球上的数据做对比*/
+void SMaterialGroupItemWidget::AnalysisMaterialParamsAndPath()
+{
 	ParamContainer.Get()->ClearChildren();
-	m_MaterialInfo->VectorParams.Empty();
-	m_MaterialInfo->ScalarParams.Empty();
+	ColorImageArray.Empty();
+
+	TMap<FString, float> TempScalarParams;
+	TMap<FString, FLinearColor> TempVectorParams;
 
 	UMaterialInstance* Material = lms->material;
 	if (Material)
@@ -302,8 +323,7 @@ void SMaterialGroupItemWidget::AnalysisMaterialParams()
 			{
 				ParamName = ParameterInfo[i].Name.ToString();
 				Material->GetScalarParameterValue(ParameterInfo[i], ScalarValue);
-				m_MaterialInfo->ScalarParams.Emplace(ParamName, ScalarValue);
-
+				TempScalarParams.Emplace(ParamName, ScalarValue);
 			}
 		}
 
@@ -321,15 +341,37 @@ void SMaterialGroupItemWidget::AnalysisMaterialParams()
 			{
 				ParamName = ParameterInfo[i].Name.ToString();
 				Material->GetVectorParameterValue(ParameterInfo[i], VectorValue);
-				m_MaterialInfo->VectorParams.Emplace(ParamName, VectorValue);
-				UE_LOG(LogTemp, Warning, TEXT("Group name is %s , %s , %s"), *groupName.ToString(), *ParameterInfo[i].Name.ToString(), *VectorValue.ToString());
+				TempVectorParams.Emplace(ParamName, VectorValue);
 			}
 		}
+
+
+		/*因为材质球可能有修改，因此在设置本地数据之前先要进行对比,将材质球和本地数据中都有的数据更新*/
+		for (TPair<FString, float> item : TempScalarParams)
+		{
+			if (m_MaterialInfo->ScalarParams.Contains(item.Key))
+			{
+				TempScalarParams[item.Key] = m_MaterialInfo->ScalarParams[item.Key];
+			}
+		}
+
+		for (TPair<FString, FLinearColor> item : TempVectorParams)
+		{
+			if (m_MaterialInfo->VectorParams.Contains(item.Key))
+			{
+				TempVectorParams[item.Key] = m_MaterialInfo->VectorParams[item.Key];
+			}
+		}
+
+		m_MaterialInfo->ScalarParams = TempScalarParams;
+		m_MaterialInfo->VectorParams = TempVectorParams;
+
 		AddParamsToSlot();
+
 		m_MaterialInfo->MatPath = Material->GetPathName();
-		DelegateManager::Get()->AddSceneMatInstance.Broadcast(m_MaterialInfo);
 	}
 }
+
 
 
 void SMaterialGroupItemWidget::AddParamsToSlot()

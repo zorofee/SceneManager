@@ -112,6 +112,7 @@ private:
 	TSharedPtr<SComboBox<TSharedPtr<FString>>> PlanComboBox;
 	TArray<TSharedPtr<FString>> SourceComboList;
 	TSharedPtr<SEditableTextBox> PlanNameText;
+	TSharedPtr<STextBlock> ComboBoxSelectedText;
 
 	TSharedRef<SWidget> GenerateSourceComboItem(TSharedPtr<FString> InItem);
 	void HandleSourceComboChanged(TSharedPtr<FString> Item, ESelectInfo::Type SelectInfo);

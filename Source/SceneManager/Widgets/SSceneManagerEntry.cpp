@@ -187,7 +187,7 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 							.OnGenerateWidget(this, &SSceneManagerTools::GenerateSourceComboItem)
 							.OnSelectionChanged(this, &SSceneManagerTools::HandleSourceComboChanged)
 							[
-								SNew(STextBlock)
+								SAssignNew(ComboBoxSelectedText,STextBlock)
 								.Text(FText::FromString(FString::Printf(TEXT("Default"))))
 							]
 						]
@@ -328,6 +328,7 @@ void SSceneManagerTools::HandleSourceComboChanged(TSharedPtr<FString> Item, ESel
 	if (Item.IsValid())
 	{
 		PlanComboBox->SetSelectedItem(Item);
+		ComboBoxSelectedText->SetText(FText::FromString(*Item));
 		DelegateManager::Get()->RefreshPlanList.Broadcast(*Item);
 	}
 }

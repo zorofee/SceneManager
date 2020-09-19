@@ -59,3 +59,19 @@ public:
 	UPROPERTY()
 		TMap<FString, FMaterialGroupInfo> GroupList;
 };
+
+
+struct SceneCategoryInfo
+{
+	/** This category's display name */
+	FText DisplayName;
+
+	/** A unique name for this category */
+	FName UniqueHandle;
+
+	/** Sort order for the category tab (lowest first) */
+	int32 SortOrder;
+
+	/** Optional tag meta data for the tab widget */
+	FString TagMetaData;
+};

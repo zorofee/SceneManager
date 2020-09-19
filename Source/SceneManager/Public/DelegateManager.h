@@ -9,10 +9,11 @@ DECLARE_MULTICAST_DELEGATE(SaveGameDataEvent)
 DECLARE_MULTICAST_DELEGATE_OneParam(LoadGameDataEvent, FString)
 DECLARE_MULTICAST_DELEGATE_OneParam(RefreshPlanListEvent,FString)
 DECLARE_MULTICAST_DELEGATE_OneParam(AddSceneMatPlanEvent, FString)
-DECLARE_MULTICAST_DELEGATE_OneParam(AddSceneMatGroupEvent, TSharedPtr<FMaterialGroupInfo>)
+DECLARE_MULTICAST_DELEGATE_OneParam(AddSceneMatGroupEvent, FString)
 DECLARE_MULTICAST_DELEGATE_OneParam(AddSceneMatInstanceEvent, TSharedPtr<FMaterialInfo>)
 DECLARE_MULTICAST_DELEGATE_OneParam(OnMatParamChanged, TSharedPtr<FMaterialInfo>)
 
+DECLARE_MULTICAST_DELEGATE_OneParam(DeleteSceneMatPlanEvent, FString)
 DECLARE_MULTICAST_DELEGATE_OneParam(DeleteSceneMatGroupEvent, TSharedPtr<FMaterialGroupInfo>)
 DECLARE_MULTICAST_DELEGATE_OneParam(DeleteSceneMatInstanceEvent, TSharedPtr<FMaterialInfo>)
 DECLARE_MULTICAST_DELEGATE_TwoParams(ReplaceSceneMatInstanceEvent, TSharedPtr<FMaterialInfo>,FString)
@@ -45,6 +46,8 @@ public:
 	LoadGameDataEvent LoadGameData;
 
 	RefreshPlanListEvent RefreshPlanList;
+
+	DeleteSceneMatPlanEvent DeleteSceneMatPlan;
 
 	DeleteSceneMatGroupEvent DeleteSceneMatGroup;
 

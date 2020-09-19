@@ -135,13 +135,14 @@ void SSceneMaterialManager::Construct(const FArguments& InArgs)
 			[
 				SNew(SButton)
 				.Text(FText::FromString("+ New Group"))
-				.OnClicked(this, &SSceneMaterialManager::OnAddGroupNameButtonClicked)
+				.OnClicked(this, &SSceneMaterialManager::AddNewMaterialGroup)
 				.ContentPadding(4.0f)
 			]
 			
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
 			.Padding(10, 0, 0, 0)
+
 			[
 				SAssignNew(GroupNameText, SEditableTextBox)
 				.HintText(FText::FromString("Add new group name"))
@@ -149,7 +150,6 @@ void SSceneMaterialManager::Construct(const FArguments& InArgs)
 		]
 
 	];
-	
 
 }
 
@@ -176,7 +176,14 @@ FReply SSceneMaterialManager::OnAddPlanNameButtonClicked()
 FReply SSceneMaterialManager::OnDeleteCurrentPlan()
 {
 	TSharedPtr<FString> planName = PlanComboBox->GetSelectedItem();
-	DelegateManager::Get()->DeleteSceneMatPlan.Broadcast(*planName.Get());
+	if (planName)
+	{
+		DelegateManager::Get()->DeleteSceneMatPlan.Broadcast(*planName.Get());
+	}
+	else
+	{
+		UE_LOG(LogTemp,Warning,TEXT("OnDeleteCurrentPlan Failed!"));
+	}
 	return FReply::Handled();
 }
 
@@ -196,6 +203,14 @@ void SSceneMaterialManager::HandleSourceComboChanged(TSharedPtr<FString> Item, E
 
 void SSceneMaterialManager::SetSelectedPlanName(const FString planName)
 {
+	for (size_t i = 0; i < SourceComboList.Num(); i++)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SetSelectedPlanName %s"), *planName);
+		if (*SourceComboList[i] == planName)
+		{
+			PlanComboBox->SetSelectedItem(SourceComboList[i]);
+		}
+	}
 	ComboBoxSelectedText->SetText(FText::FromString(planName));
 }
 
@@ -219,7 +234,7 @@ TSharedRef<ITableRow> SSceneMaterialManager::OnGenerateWidgetForItem(TSharedPtr<
 }
 
 
-FReply SSceneMaterialManager::OnAddGroupNameButtonClicked()
+FReply SSceneMaterialManager::AddNewMaterialGroup()
 {
 	FString groupName = GroupNameText->GetText().ToString();
 	if (groupName != TEXT(""))

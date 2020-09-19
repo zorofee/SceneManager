@@ -53,7 +53,7 @@ void SMaterialGroupWidget::Construct(const FArguments& InArgs, const TSharedPtr<
 			.AutoWidth()
 			[
 				SNew(SButton)
-				.OnClicked(this, &SMaterialGroupWidget::OnAddGroupItemButtonClicked)
+				.OnClicked(this, &SMaterialGroupWidget::AddNewMaterialInstance)
 				.Text(FText::FromString(TEXT("+ New Mat")))
 				.ContentPadding(2.0f)
 			]
@@ -77,7 +77,7 @@ void SMaterialGroupWidget::Construct(const FArguments& InArgs, const TSharedPtr<
 		[
 			SNew(SBorder)
 			.BorderImage(FEditorStyle::GetBrush("ToolPanel.DarkGroupBorder"))
-			.Padding(FMargin(10, 5))
+			.Padding(FMargin(30, 5))
 			[
 
 				SAssignNew(ListView, SListView<TSharedPtr<FMaterialInfo>>)
@@ -96,6 +96,11 @@ void SMaterialGroupWidget::Construct(const FArguments& InArgs, const TSharedPtr<
 		{
 			AddMaterialInstanceByInfo(iterator.Value);
 		}
+	}
+	else
+	{
+		//没有材质列表则创建一个默认的
+		AddNewMaterialInstance();
 	}
 }
 
@@ -116,7 +121,7 @@ TSharedRef<ITableRow> SMaterialGroupWidget::OnGenerateWidgetForItem(TSharedPtr<F
 		];
 }
 
-FReply SMaterialGroupWidget::OnAddGroupItemButtonClicked()
+FReply SMaterialGroupWidget::AddNewMaterialInstance()
 {
 	TSharedPtr<FMaterialInfo> MatInfo = MakeShareable(new FMaterialInfo());
 	MatInfo->ParentGroup = m_GroupInfo->GroupName;

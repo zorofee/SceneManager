@@ -18,9 +18,9 @@ public:
 	TSharedPtr<SSceneManagerTools> SceneManagerTools;
 
 	USceneManagerSaveGame* saveGame;
-	//TSharedPtr<USceneManagerSaveGame> saveGame;
 
 	void SaveGameData();
+
 	void LoadGameData(const FString loadPlanName = "");
 
 

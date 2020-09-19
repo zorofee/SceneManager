@@ -7,15 +7,10 @@
 
 void MaterialIntermediate::AddEventListener()
 {
-	UE_LOG(LogTemp,Warning,TEXT("AddEventListener```"));
 
 	if (!DelegateManager::Get()->SaveGameData.IsBound())
 		DelegateManager::Get()->SaveGameData.AddRaw(this, &MaterialIntermediate::SaveGameData);
-	else
-	{
-		DelegateManager::Get()->SaveGameData.Clear();
-		DelegateManager::Get()->SaveGameData.AddRaw(this, &MaterialIntermediate::SaveGameData);
-	}
+
 
 	if (!DelegateManager::Get()->LoadGameData.IsBound())
 		DelegateManager::Get()->LoadGameData.AddRaw(this, &MaterialIntermediate::LoadGameData);
@@ -35,8 +30,8 @@ void MaterialIntermediate::AddEventListener()
 
 
 
-	//if (!DelegateManager::Get()->RefreshPlanList.IsBound())
-	DelegateManager::Get()->RefreshPlanList.AddRaw(this, &MaterialIntermediate::SelectMatPlan);
+	if (!DelegateManager::Get()->RefreshPlanList.IsBound())
+		DelegateManager::Get()->RefreshPlanList.AddRaw(this, &MaterialIntermediate::SelectMatPlan);
 
 	if (!DelegateManager::Get()->DeleteSceneMatPlan.IsBound())
 		DelegateManager::Get()->DeleteSceneMatPlan.AddRaw(this, &MaterialIntermediate::DeleteMatPlan);
@@ -112,6 +107,7 @@ void MaterialIntermediate::DeleteMatPlan(FString planName)
 {
 	if (PlanList.Contains(planName))
 	{
+		//UE_LOG(LogTemp,Warning,TEXT("DeleteMatPlan"));
 		//1.„h³ýÊý¾Ý
 		PlanList.Remove(planName);
 

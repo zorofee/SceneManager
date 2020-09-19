@@ -32,7 +32,7 @@ private:
 private:
 	TSharedPtr<SEditableTextBox> GroupNameText;
 	TSharedRef<ITableRow> OnGenerateWidgetForItem(TSharedPtr<FMaterialGroupInfo> InItem, const TSharedRef<STableViewBase>& OwnerTable);
-	FReply OnAddGroupNameButtonClicked();
+	FReply AddNewMaterialGroup();
 public:
 	TSharedPtr<SListView<TSharedPtr<FMaterialGroupInfo>>> MatGroupListView;
 	TArray<TSharedPtr<FMaterialGroupInfo>> MatGroupItems;

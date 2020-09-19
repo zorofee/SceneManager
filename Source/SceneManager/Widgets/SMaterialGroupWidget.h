@@ -44,7 +44,7 @@ private:
 	/** Generates a widget for the specified item */
 	TSharedRef<ITableRow> OnGenerateWidgetForItem(TSharedPtr<FMaterialInfo> InItem,const TSharedRef<STableViewBase>& OwnerTable);
 
-	FReply OnAddGroupItemButtonClicked();
+	FReply AddNewMaterialInstance();
 
 	FReply OnRemoveGroupButtonClicked();
 

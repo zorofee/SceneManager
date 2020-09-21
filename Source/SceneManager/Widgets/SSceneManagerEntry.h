@@ -2,8 +2,10 @@
 
 #pragma once
 
-#include "DataStructures.h"
+#include "SPostProcessManager.h"
 #include "SSceneMaterialManager.h"
+#include "SPostProcessManager.h"
+#include "DataStructures.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Layout/Visibility.h"
 #include "Widgets/SWidget.h"
@@ -28,13 +30,14 @@ private:
 
 public:
 	TSharedPtr<SSceneMaterialManager> SceneMaterialManager;
+	TSharedPtr<SPostProcessManager> PostProcessManager;
+
+
 	/*
 		Tabs
 	*/
 private:
-	TSharedPtr<SSearchBox> SearchBoxPtr;
-	TSharedPtr<SBox> CustomContent;
-	TSharedPtr<SBox> LevelLightContent;
+
 	FName ActiveTabName;
 	bool bNeedsUpdate;
 	TArray<SceneCategoryInfo> Categories;
@@ -45,6 +48,7 @@ private:
 	EVisibility GetTabsVisibility() const;
 
 
+	void SelectManagerContainer(FString ContainerName);
 
 
 };

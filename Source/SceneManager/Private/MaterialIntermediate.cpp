@@ -44,6 +44,14 @@ void MaterialIntermediate::AddEventListener()
 
 	if (!DelegateManager::Get()->ReplaceSceneMatInstance.IsBound())
 		DelegateManager::Get()->ReplaceSceneMatInstance.AddRaw(this, &MaterialIntermediate::ReplaceMatInstance);
+
+
+
+	/*
+		PostPorcess Event
+	*/
+	if (!DelegateManager::Get()->PostProcessSettingChanged.IsBound())
+		DelegateManager::Get()->PostProcessSettingChanged.AddRaw(this, &MaterialIntermediate::OnPostProcessSettingChanged);
 }
 
 
@@ -52,10 +60,26 @@ void MaterialIntermediate::SaveGameData()
 {
 	if (saveGame)
 	{
+		/*
+			Save Material Plan
+		*/
 		saveGame = Cast<USceneManagerSaveGame>(UGameplayStatics::CreateSaveGameObject(USceneManagerSaveGame::StaticClass()));
 		saveGame->PlanList = PlanList;
 		saveGame->DefaultPlan = currentPlan;
 		UE_LOG(LogTemp, Warning, TEXT("SaveGameData PlanList %d"), saveGame->PlanList.Num());
+
+
+
+		/*
+			Save PostProcess
+		*/
+		saveGame->postprocess = PostProcess;
+		UE_LOG(LogTemp, Warning, TEXT("SaveGameData BloomSizeScale %f"), PostProcess.BloomSizeScale);
+
+
+		/*
+			Save Game Data
+		*/
 		UGameplayStatics::SaveGameToSlot(saveGame, TEXT("TestSlot"), 0);
 	}
 }
@@ -69,16 +93,29 @@ void MaterialIntermediate::LoadGameData(const FString loadPlanName)
 	}
 	else
 	{
+
+		/*
+			Refresh Material Plan
+		*/
 		UE_LOG(LogTemp, Warning, TEXT("LoadGameData %s"), *loadPlanName);
 		PlanList = saveGame->PlanList;
 		SelectMatPlan(saveGame->DefaultPlan);
 
-		/*refresh combobox when first load savedata*/
+		//refresh combobox when first load savedata
 		TArray<FString> planNameArr;
 		PlanList.GenerateKeyArray(planNameArr);
 		SceneManagerTools->SceneMaterialManager->ResetPlanComboBox(planNameArr);
-	}
 
+
+		/*
+			Refresh PostProcess
+		*/
+
+		PostProcess = saveGame->postprocess;
+		//PostProcess->param1 = 10.17f;
+		UE_LOG(LogTemp, Warning, TEXT("SaveGameData BloomSizeScale %f"), saveGame->postprocess.BloomSizeScale);
+		SceneManagerTools->PostProcessManager->RefreshContentList(PostProcess);
+	}
 }
 
 
@@ -284,4 +321,12 @@ void MaterialIntermediate::ReplaceMatInstance(TSharedPtr<FMaterialInfo> matInfo,
 	}
 
 	AddMatInstance(matInfo);
+}
+
+
+
+void MaterialIntermediate::OnPostProcessSettingChanged(FPostProcessSettings pps)
+{
+	UE_LOG(LogTemp, Warning, TEXT("SaveGameData BloomSizeScale %f"), pps.BloomSizeScale);
+	PostProcess = pps;
 }

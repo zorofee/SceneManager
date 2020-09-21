@@ -2,6 +2,7 @@
 
 
 #include "SSceneManagerEntry.h"
+#include "SPostProcessManager.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Text/STextBlock.h"
@@ -11,7 +12,6 @@
 #include "DelegateManager.h"
 
 #include "Widgets/Layout/SScrollBox.h"
-
 
 #define LOCTEXT_NAMESPACE "FSceneManagerModule"
 
@@ -95,12 +95,24 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 				.Padding(FMargin(3))
 				.BorderImage(FEditorStyle::GetBrush("ToolPanel.DarkGroupBorder"))
 				[
-					SAssignNew(SceneMaterialManager,SSceneMaterialManager)
+
+					SNew(SVerticalBox)
+					+SVerticalBox::Slot()
+					[
+						SAssignNew(SceneMaterialManager, SSceneMaterialManager)
+					]
+					
+					+ SVerticalBox::Slot()
+					[
+						SAssignNew(PostProcessManager,SPostProcessManager)
+					]
+					
 				]
 			]
 		]
 	];
 	ActiveTabName = Categories[0].UniqueHandle;
+	SelectManagerContainer("LevelMaterial");
 }
 
 
@@ -127,7 +139,7 @@ TSharedRef< SWidget > SSceneManagerTools::CreatePlacementGroupTab(const SceneCat
 		[
 			SNew(STextBlock)
 			.TextStyle(FEditorStyle::Get(), "PlacementBrowser.Tab.Text")
-		.Text(Info.DisplayName)
+			.Text(Info.DisplayName)
 		]
 
 		+ SOverlay::Slot()
@@ -160,11 +172,31 @@ void SSceneManagerTools::OnPlacementTabChanged(ECheckBoxState NewState, FName Ca
 	if (NewState == ECheckBoxState::Checked)
 	{
 		ActiveTabName = CategoryName;
-		//IPlacementModeModule::Get().RegenerateItemsForCategory(ActiveTabName);
-
-		bNeedsUpdate = true;
+		SelectManagerContainer(CategoryName.ToString());
 	}
 }
+
+void SSceneManagerTools::SelectManagerContainer(FString ContainerName)
+{
+	if (ContainerName == "LevelMaterial")
+	{
+		SceneMaterialManager->SetVisibility(EVisibility::Visible);
+
+		PostProcessManager->SetVisibility(EVisibility::Collapsed);
+	}
+	else if (ContainerName == "PostProcess")
+	{
+		PostProcessManager->SetVisibility(EVisibility::Visible);
+
+		SceneMaterialManager->SetVisibility(EVisibility::Collapsed);
+	}
+	else
+	{
+		PostProcessManager->SetVisibility(EVisibility::Collapsed);
+		SceneMaterialManager->SetVisibility(EVisibility::Collapsed);
+	}
+}
+
 
 
 ECheckBoxState SSceneManagerTools::GetPlacementTabCheckedState(FName CategoryName) const

@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "LevelPostProcessSettings.h"
 #include "DataStructures.h"
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
@@ -23,6 +24,10 @@ public:
 
 	UPROPERTY()
 		TMap<FString, FMaterialPlanInfo> PlanList;
+
+
+	UPROPERTY(EditAnywhere, Category = "PostProcess")
+		FPostProcessSettings postprocess;
 
 };
 

@@ -18,6 +18,10 @@ DECLARE_MULTICAST_DELEGATE_OneParam(DeleteSceneMatGroupEvent, TSharedPtr<FMateri
 DECLARE_MULTICAST_DELEGATE_OneParam(DeleteSceneMatInstanceEvent, TSharedPtr<FMaterialInfo>)
 DECLARE_MULTICAST_DELEGATE_TwoParams(ReplaceSceneMatInstanceEvent, TSharedPtr<FMaterialInfo>,FString)
 
+
+DECLARE_MULTICAST_DELEGATE_OneParam(PostProcessSettingChangedEvent, FPostProcessSettings)
+
+
 /**
  * 
  */
@@ -54,4 +58,7 @@ public:
 	DeleteSceneMatInstanceEvent DeleteSceneMatInstance;
 
 	ReplaceSceneMatInstanceEvent ReplaceSceneMatInstance;
+
+
+	PostProcessSettingChangedEvent PostProcessSettingChanged;
 };

@@ -47,11 +47,6 @@ void MaterialIntermediate::AddEventListener()
 
 
 
-	/*
-		PostPorcess Event
-	*/
-	if (!DelegateManager::Get()->PostProcessSettingChanged.IsBound())
-		DelegateManager::Get()->PostProcessSettingChanged.AddRaw(this, &MaterialIntermediate::OnPostProcessSettingChanged);
 }
 
 
@@ -325,8 +320,3 @@ void MaterialIntermediate::ReplaceMatInstance(TSharedPtr<FMaterialInfo> matInfo,
 
 
 
-void MaterialIntermediate::OnPostProcessSettingChanged(FPostProcessSettings pps)
-{
-	UE_LOG(LogTemp, Warning, TEXT("SaveGameData BloomSizeScale %f"), pps.BloomSizeScale);
-	PostProcess = pps;
-}

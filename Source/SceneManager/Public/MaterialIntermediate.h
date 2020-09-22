@@ -50,7 +50,6 @@ public:
 
 
 
-	void OnPostProcessSettingChanged(FPostProcessSettings pps);
 
 public:
 	/*

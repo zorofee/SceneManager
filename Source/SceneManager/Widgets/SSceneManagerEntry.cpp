@@ -30,12 +30,12 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 	UE_LOG(LogTemp,Warning,TEXT("SSceneManagerTools Construct !"));
 
 	SceneCategoryInfo Category;
-	Category.DisplayName = FText::FromString(FString::Printf(TEXT("Level Material")));
-	Category.UniqueHandle = FName(TEXT("LevelMaterial"));
+	Category.DisplayName = FText::FromString(FString::Printf(TEXT("Scene Material")));
+	Category.UniqueHandle = FName(TEXT("SceneMaterial"));
 	Categories.Emplace(Category);
 
-	Category.DisplayName = FText::FromString(FString::Printf(TEXT("Level Light")));
-	Category.UniqueHandle = FName(TEXT("LevelLight"));
+	Category.DisplayName = FText::FromString(FString::Printf(TEXT("Scene Light")));
+	Category.UniqueHandle = FName(TEXT("SceneLight"));
 	Categories.Emplace(Category);
 
 	Category.DisplayName = FText::FromString(FString::Printf(TEXT("Player Light")));
@@ -106,13 +106,22 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 					[
 						SAssignNew(PostProcessManager,SPostProcessManager)
 					]
-					
+
+					+ SVerticalBox::Slot()
+					[
+						SAssignNew(SceneLightManager, SSceneLightManager)
+					]
+
+					+ SVerticalBox::Slot()
+					[
+						SAssignNew(PlayerLightManager, SPlayerLightManager)
+					]
 				]
 			]
 		]
 	];
 	ActiveTabName = Categories[0].UniqueHandle;
-	SelectManagerContainer("LevelMaterial");
+	SelectManagerContainer("SceneMaterial");
 }
 
 
@@ -178,22 +187,40 @@ void SSceneManagerTools::OnPlacementTabChanged(ECheckBoxState NewState, FName Ca
 
 void SSceneManagerTools::SelectManagerContainer(FString ContainerName)
 {
-	if (ContainerName == "LevelMaterial")
+	if (ContainerName == "SceneMaterial")
 	{
 		SceneMaterialManager->SetVisibility(EVisibility::Visible);
-
 		PostProcessManager->SetVisibility(EVisibility::Collapsed);
+		PlayerLightManager->SetVisibility(EVisibility::Collapsed);
+		SceneLightManager->SetVisibility(EVisibility::Collapsed);
 	}
 	else if (ContainerName == "PostProcess")
 	{
 		PostProcessManager->SetVisibility(EVisibility::Visible);
-
 		SceneMaterialManager->SetVisibility(EVisibility::Collapsed);
+		PlayerLightManager->SetVisibility(EVisibility::Collapsed);
+		SceneLightManager->SetVisibility(EVisibility::Collapsed);
+	}
+	else if (ContainerName == "SceneLight")
+	{
+		PostProcessManager->SetVisibility(EVisibility::Collapsed);
+		SceneMaterialManager->SetVisibility(EVisibility::Collapsed);
+		PlayerLightManager->SetVisibility(EVisibility::Collapsed);
+		SceneLightManager->SetVisibility(EVisibility::Visible);
+	}
+	else if (ContainerName == "PlayerLight")
+	{
+		PostProcessManager->SetVisibility(EVisibility::Collapsed);
+		SceneMaterialManager->SetVisibility(EVisibility::Collapsed);
+		PlayerLightManager->SetVisibility(EVisibility::Visible);
+		SceneLightManager->SetVisibility(EVisibility::Collapsed);
 	}
 	else
 	{
 		PostProcessManager->SetVisibility(EVisibility::Collapsed);
 		SceneMaterialManager->SetVisibility(EVisibility::Collapsed);
+		PlayerLightManager->SetVisibility(EVisibility::Collapsed);
+		SceneLightManager->SetVisibility(EVisibility::Collapsed);
 	}
 }
 

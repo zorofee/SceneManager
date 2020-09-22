@@ -4,6 +4,7 @@
 
 #include "Engine/PostProcessVolume.h"
 #include "LevelPostProcessSettings.h"
+#include "Widgets/SWidget.h"
 #include "CoreMinimal.h"
 
 /**

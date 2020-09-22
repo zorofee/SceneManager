@@ -1,7 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
-
+#include "SSceneLightManager.h"
+#include "SPlayerLightManager.h"
 #include "SPostProcessManager.h"
 #include "SSceneMaterialManager.h"
 #include "SPostProcessManager.h"
@@ -31,8 +32,8 @@ private:
 public:
 	TSharedPtr<SSceneMaterialManager> SceneMaterialManager;
 	TSharedPtr<SPostProcessManager> PostProcessManager;
-
-
+	TSharedPtr<SSceneLightManager> SceneLightManager;
+	TSharedPtr<SPlayerLightManager> PlayerLightManager;
 	/*
 		Tabs
 	*/

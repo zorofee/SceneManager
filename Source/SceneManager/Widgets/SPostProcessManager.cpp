@@ -31,7 +31,6 @@ void SPostProcessManager::RefreshContentList(FPostProcessSettings& PPS)
 void SPostProcessManager::OnFinishedChangingProperties(const FPropertyChangedEvent& InEvent)
 {
 	SetScenePostProcessVolume();
-	DelegateManager::Get()->PostProcessSettingChanged.Broadcast(Setting->postprocess);
 }
 
 void SPostProcessManager::GetScenePostProcessVolume()

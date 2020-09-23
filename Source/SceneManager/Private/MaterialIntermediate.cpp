@@ -45,7 +45,8 @@ void MaterialIntermediate::AddEventListener()
 	if (!DelegateManager::Get()->ReplaceSceneMatInstance.IsBound())
 		DelegateManager::Get()->ReplaceSceneMatInstance.AddRaw(this, &MaterialIntermediate::ReplaceMatInstance);
 
-
+	if (!DelegateManager::Get()->SelectMaterialInstance.IsBound())
+		DelegateManager::Get()->SelectMaterialInstance.AddRaw(this, &MaterialIntermediate::SelectMaterialInstance);
 
 }
 
@@ -66,13 +67,6 @@ void MaterialIntermediate::SaveGameData()
 
 
 		/*
-			Save PostProcess
-		*/
-		saveGame->postprocess = PostProcess;
-		UE_LOG(LogTemp, Warning, TEXT("SaveGameData BloomSizeScale %f"), PostProcess.BloomSizeScale);
-
-
-		/*
 			Save Game Data
 		*/
 		UGameplayStatics::SaveGameToSlot(saveGame, TEXT("TestSlot"), 0);
@@ -89,6 +83,7 @@ void MaterialIntermediate::LoadGameData(const FString loadPlanName)
 	else
 	{
 
+
 		/*
 			Refresh Material Plan
 		*/
@@ -100,17 +95,12 @@ void MaterialIntermediate::LoadGameData(const FString loadPlanName)
 		TArray<FString> planNameArr;
 		PlanList.GenerateKeyArray(planNameArr);
 		SceneManagerTools->SceneMaterialManager->ResetPlanComboBox(planNameArr);
-
-
-		/*
-			Refresh PostProcess
-		*/
-
-		PostProcess = saveGame->postprocess;
-		//PostProcess->param1 = 10.17f;
-		UE_LOG(LogTemp, Warning, TEXT("SaveGameData BloomSizeScale %f"), saveGame->postprocess.BloomSizeScale);
-		SceneManagerTools->PostProcessManager->RefreshContentList(PostProcess);
 	}
+
+	/*
+	Refresh PostProcess
+	*/
+	SceneManagerTools->PostProcessManager->RefreshContentList();
 }
 
 
@@ -319,4 +309,20 @@ void MaterialIntermediate::ReplaceMatInstance(TSharedPtr<FMaterialInfo> matInfo,
 }
 
 
-
+void MaterialIntermediate::SelectMaterialInstance(FString newPath, TSharedPtr<FMaterialInfo> matInfo, SMaterialGroupItemWidget* widget)
+{
+	if (PlanList.Contains(matInfo->ParentPlan))
+	{
+		if (PlanList[matInfo->ParentPlan].GroupList.Contains(matInfo->ParentGroup))
+		{
+			if (!PlanList[matInfo->ParentPlan].GroupList[matInfo->ParentGroup].MatList.Contains(newPath))
+			{
+				widget->ChangeSelectedMatInstance();
+			}
+			else
+			{
+				widget->SelectedRepeatedMatInstance();
+			}
+		}
+	}
+}

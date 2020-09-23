@@ -106,10 +106,14 @@ void SMaterialGroupItemWidget::SaveMaterialInfo(const TSharedPtr<const FMaterial
 
 void SMaterialGroupItemWidget::OnFinishedChangingProperties(const FPropertyChangedEvent& InEvent)
 {
+	DelegateManager::Get()->SelectMaterialInstance.Broadcast(lms->material->GetPathName(),m_MaterialInfo,this);
+}
+
+void SMaterialGroupItemWidget::ChangeSelectedMatInstance()
+{
 	FString originPath = m_MaterialInfo->MatPath;
 
 	AnalysisMaterialParamsAndPath();
-
 
 	//更新数据层
 	DelegateManager::Get()->AddSceneMatInstance.Broadcast(m_MaterialInfo);
@@ -133,7 +137,6 @@ void SMaterialGroupItemWidget::OnFinishedChangingProperties(const FPropertyChang
 		}
 	}
 }
-
 
 
 TSharedRef<SHorizontalBox> SMaterialGroupItemWidget::GetScalarParamSlot(FString name , float value)
@@ -482,4 +485,12 @@ void SMaterialGroupItemWidget::SaveMaterialInstance()
 	FString FilePath = matPath.Replace(TEXT("/Game/"), *FPaths::ProjectContentDir()).Replace(*FString::Printf(TEXT(".%s"), *FileName), TEXT(".uasset"));
 	UE_LOG(LogTemp, Warning, TEXT("SaveMaterialInstance %s ,  %s"), *PackagePath, *FilePath);
 	GEngine->Exec(NULL, *FString::Printf(TEXT("OBJ SAVEPACKAGE PACKAGE=\"%s\" FILE=\"%s\" SILENT=true"), *PackagePath, *FilePath));
+}
+
+
+void SMaterialGroupItemWidget::SelectedRepeatedMatInstance()
+{
+	ParamContainer.Get()->ClearChildren();
+	ColorImageArray.Empty();
+	lms->material = nullptr;
 }

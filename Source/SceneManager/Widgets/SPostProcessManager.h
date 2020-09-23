@@ -22,10 +22,9 @@ public:
 	//class ULevelPostProcessSettings* m_pps;
 
 public:
-	void RefreshContentList(FPostProcessSettings& PPS);
+	void RefreshContentList(/*FPostProcessSettings& PPS*/);
 
 	void OnFinishedChangingProperties(const FPropertyChangedEvent& InEvent);
-
 
 	ULevelPostProcessSettings* Setting;
 

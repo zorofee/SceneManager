@@ -19,13 +19,13 @@ class UPlayerLightSettings : public UObject
 	
 public:
 
-	UPROPERTY(EditAnywhere, Category = "MainLight")
+	UPROPERTY(EditAnywhere, Category = "LightParams")
 		FRotator rotation;
 
-	UPROPERTY(EditAnywhere, Category = "MainLight")
+	UPROPERTY(EditAnywhere, Category = "LightParams")
 		float intensity;
 
-	UPROPERTY(EditAnywhere, Category = "MainLight")
+	UPROPERTY(EditAnywhere, Category = "LightParams")
 		FLinearColor color;
 
 

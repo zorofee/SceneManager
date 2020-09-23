@@ -24,9 +24,6 @@ public:
 	void LoadGameData(const FString loadPlanName = "");
 
 
-
-
-
 public:
 	void AddEventListener();
 
@@ -47,9 +44,7 @@ public:
 
 	void SetMatScalarParam(TSharedPtr<FMaterialInfo> matInfo);
 
-
-
-
+	void SelectMaterialInstance(FString newPath, TSharedPtr<FMaterialInfo> matInfo,  SMaterialGroupItemWidget* widget);
 
 public:
 	/*
@@ -60,8 +55,5 @@ public:
 	FString currentPlan = TEXT("RedPlan");
 	TMap<FString, FMaterialPlanInfo> PlanList;
 
-	//PostProcess
-	UPROPERTY()
-	FPostProcessSettings PostProcess;
 
 };

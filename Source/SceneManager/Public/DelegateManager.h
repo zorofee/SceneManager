@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
-
+#include "../Widgets/SMaterialGroupItemWidget.h"
 #include "DataStructures.h"
 #include "CoreMinimal.h"
 
@@ -18,6 +18,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(DeleteSceneMatGroupEvent, TSharedPtr<FMateri
 DECLARE_MULTICAST_DELEGATE_OneParam(DeleteSceneMatInstanceEvent, TSharedPtr<FMaterialInfo>)
 DECLARE_MULTICAST_DELEGATE_TwoParams(ReplaceSceneMatInstanceEvent, TSharedPtr<FMaterialInfo>,FString)
 
+DECLARE_MULTICAST_DELEGATE_ThreeParams(SelectMaterialInstanceEvent,FString, TSharedPtr<FMaterialInfo>, SMaterialGroupItemWidget*)
 
 
 
@@ -58,5 +59,6 @@ public:
 
 	ReplaceSceneMatInstanceEvent ReplaceSceneMatInstance;
 
+	SelectMaterialInstanceEvent SelectMaterialInstance;
 
 };

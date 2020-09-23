@@ -2,14 +2,14 @@
 
 
 #include "SPostProcessManager.h"
-#include "DelegateManager.h"
 #include "Kismet/GameplayStatics.h"
+#include "Engine/Scene.h"
 
 void SPostProcessManager::Construct(const FArguments& InArgs)
 {
 }
 
-void SPostProcessManager::RefreshContentList(FPostProcessSettings& PPS)
+void SPostProcessManager::RefreshContentList(/*FPostProcessSettings& PPS*/)
 {
 	FDetailsViewArgs DetailsViewArgs(false, false, true, FDetailsViewArgs::HideNameArea, true);
 	DetailsViewArgs.bAllowSearch = false;

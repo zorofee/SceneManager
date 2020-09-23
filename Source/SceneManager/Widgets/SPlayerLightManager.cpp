@@ -2,7 +2,6 @@
 
 
 #include "SPlayerLightManager.h"
-#include "SMaterialGroupWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/LightComponent.h"
 #include "Engine/World.h"
@@ -20,9 +19,6 @@ void SPlayerLightManager::Construct(const FArguments& InArgs)
 	if (loadasset != nullptr)
 	{
 		MPC = loadasset;
-		//UMaterialParameterCollectionInstance* ParameterCollectionInstance = GEditor->GetEditorWorldContext().World()->GetParameterCollectionInstance(MPC);
-		//ParameterCollectionInstance->SetScalarParameterValue("PLAYER", 3.14f);
-		
 	}
 	else
 	{
@@ -39,63 +35,88 @@ void SPlayerLightManager::Construct(const FArguments& InArgs)
 	LightSetting = NewObject<UPlayerLightSettings>();
 	PlayerLightView->SetObject(LightSetting);
 
-
-	//GetAllSceneLight();
-
 	ChildSlot
 	[
 		SNew(SVerticalBox)
 		
 		+SVerticalBox::Slot()
 		.AutoHeight()
+		.Padding(10,10,10,10)
 		[
-			SAssignNew(PlanComboBox, SComboBox<TSharedPtr<FString>>)
-			.OptionsSource(&SourceComboList)
-			.OnGenerateWidget(this, &SPlayerLightManager::GenerateSourceComboItem)
-			.OnSelectionChanged(this, &SPlayerLightManager::HandleSourceComboChanged)
-			.OnComboBoxOpening(this,&SPlayerLightManager::OnComboBoxOpening)
+			SNew(SBorder)
 			[
-				SAssignNew(ComboBoxSelectedText, STextBlock)
-				.Text(FText::FromString(FString::Printf(TEXT("Default"))))
+				SNew(SVerticalBox)
+
+				+ SVerticalBox::Slot()
+				[
+					SNew(SHorizontalBox)
+
+					+SHorizontalBox::Slot()
+					.AutoWidth()
+					[
+						SNew(STextBlock)
+						.TextStyle(FEditorStyle::Get(), "PlacementBrowser.Tab.Text")
+						.Text(FText::FromString(TEXT("Select Light Source:")))
+					]
+
+					+SHorizontalBox::Slot()
+					.Padding(10,0,0,0)
+					[
+						SAssignNew(LightComboBox, SComboBox<TSharedPtr<FString>>)
+						.OptionsSource(&SourceComboList)
+						.OnGenerateWidget(this, &SPlayerLightManager::GenerateSourceComboItem)
+						.OnSelectionChanged(this, &SPlayerLightManager::HandleSourceComboChanged)
+						.OnComboBoxOpening(this, &SPlayerLightManager::OnComboBoxOpening)
+						[
+							SAssignNew(ComboBoxSelectedText, STextBlock)
+							.Text(FText::FromString(FString::Printf(TEXT("Default"))))
+						]
+					]
+				]
+
+				+ SVerticalBox::Slot()
+				.AutoHeight()
+				[
+					PlayerLightView
+				]
 			]
 		]
 
-		+ SVerticalBox::Slot()
-		.AutoHeight()
-		[
-			PlayerLightView
-		]
+		
 		
 		+SVerticalBox::Slot()
 		.AutoHeight()
+		.Padding(10,20,0,0)
 		[
-			//MPCView
-			SAssignNew(ParamsContainer,SVerticalBox)
+			SNew(SBorder)
+			[
+				SNew(SVerticalBox)
+				
+				+SVerticalBox::Slot()
+				.AutoHeight()
+				[
+					SNew(STextBlock)
+					.TextStyle(FEditorStyle::Get(), "PlacementBrowser.Tab.Text")
+					.Text(FText::FromString(TEXT("Player Light MPC")))
+				]
+				
+				+SVerticalBox::Slot()
+				.AutoHeight()
+				[
+					//MPCView
+					SAssignNew(ParamsContainer, SVerticalBox)
+				]
+			]
 		]
 	];
 
 
-	ColorImageArray.Empty();
-	for (size_t i = 0; i < MPC->ScalarParameters.Num(); i++)
-	{
-		AddScalarParam(MPC->ScalarParameters[i].ParameterName.ToString(), MPC->ScalarParameters[i].DefaultValue);
-	}
-
-	for (size_t i = 0; i < MPC->VectorParameters.Num(); i++)
-	{
-		AddVectorParam(MPC->VectorParameters[i].ParameterName.ToString(), MPC->VectorParameters[i].DefaultValue,i);
-	}
-}
-
-void SPlayerLightManager::OnFinishedChangingMainLight(const FPropertyChangedEvent& InEvent)
-{
-	SelectedLight->SetLightColor(LightSetting->color);
-	SelectedLight->GetLightComponent()->SetIntensity(LightSetting->intensity);
-	SelectedLight->GetLightComponent()->SetWorldRotation(LightSetting->rotation);
+	RefreshMPCWidgets();
 }
 
 
-void SPlayerLightManager::GetAllSceneLight()
+
+void SPlayerLightManager::RefreshLightComboList()
 {
 	TArray<AActor*> actorList;
 	UWorld* World = GEditor->GetEditorWorldContext().World();
@@ -108,6 +129,21 @@ void SPlayerLightManager::GetAllSceneLight()
 		SourceComboList.Emplace(MakeShareable(new FString(actorList[i]->GetName())));
 	}
 }
+
+void SPlayerLightManager::RefreshMPCWidgets()
+{
+	ColorImageArray.Empty();
+	for (size_t i = 0; i < MPC->ScalarParameters.Num(); i++)
+	{
+		AddScalarParam(MPC->ScalarParameters[i].ParameterName.ToString(), MPC->ScalarParameters[i].DefaultValue);
+	}
+
+	for (size_t i = 0; i < MPC->VectorParameters.Num(); i++)
+	{
+		AddVectorParam(MPC->VectorParameters[i].ParameterName.ToString(), MPC->VectorParameters[i].DefaultValue, i);
+	}
+}
+
 
 void SPlayerLightManager::FindSceneLight(const FString lightName)
 {
@@ -128,6 +164,13 @@ void SPlayerLightManager::FindSceneLight(const FString lightName)
 	}
 }
 
+void SPlayerLightManager::OnFinishedChangingMainLight(const FPropertyChangedEvent& InEvent)
+{
+	SelectedLight->SetLightColor(LightSetting->color);
+	SelectedLight->GetLightComponent()->SetIntensity(LightSetting->intensity);
+	SelectedLight->GetLightComponent()->SetWorldRotation(LightSetting->rotation);
+}
+
 
 TSharedRef<SWidget> SPlayerLightManager::GenerateSourceComboItem(TSharedPtr<FString> InItem)
 {
@@ -139,7 +182,7 @@ void SPlayerLightManager::HandleSourceComboChanged(TSharedPtr<FString> Item, ESe
 {
 	if (Item.IsValid())
 	{
-		PlanComboBox->SetSelectedItem(Item);
+		LightComboBox->SetSelectedItem(Item);
 		ComboBoxSelectedText->SetText(FText::FromString(*Item.Get()));
 		FindSceneLight(*Item);
 	}
@@ -148,8 +191,8 @@ void SPlayerLightManager::HandleSourceComboChanged(TSharedPtr<FString> Item, ESe
 void SPlayerLightManager::OnComboBoxOpening()
 {
 	SourceComboList.Empty();
-	GetAllSceneLight();
-	PlanComboBox->RefreshOptions();
+	RefreshLightComboList();
+	LightComboBox->RefreshOptions();
 }
 
 void SPlayerLightManager::AddScalarParam(const FString name, float value)
@@ -160,7 +203,7 @@ void SPlayerLightManager::AddScalarParam(const FString name, float value)
 
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
-		.Padding(10, 10, 10, 10)
+		.Padding(5, 5, 5, 5)
 		.VAlign(EVerticalAlignment::VAlign_Center)
 		[
 			SNew(STextBlock)
@@ -168,7 +211,7 @@ void SPlayerLightManager::AddScalarParam(const FString name, float value)
 		]
 
 		+ SHorizontalBox::Slot()
-		.Padding(10, 10, 10, 10)
+		.Padding(5, 5, 5, 5)
 		[
 			SNew(SSpinBox<float>)
 			.OnValueChanged(this, &SPlayerLightManager::OnScalarValueChanged, name)
@@ -192,7 +235,7 @@ void SPlayerLightManager::AddVectorParam(const FString name, FLinearColor value,
 
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
-		.Padding(10, 10, 10, 10)
+		.Padding(5, 5, 5, 5)
 		.VAlign(EVerticalAlignment::VAlign_Center)
 		[
 			SNew(STextBlock)
@@ -200,7 +243,7 @@ void SPlayerLightManager::AddVectorParam(const FString name, FLinearColor value,
 		]
 
 		+ SHorizontalBox::Slot()
-		.Padding(10, 10, 10, 10)
+		.Padding(5, 5, 5, 5)
 		[
 			SAssignNew(ColorImageArray[index], SImage)
 			.ColorAndOpacity(FSlateColor(value))

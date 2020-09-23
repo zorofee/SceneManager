@@ -4,8 +4,6 @@
 #include "Engine/Light.h"
 #include "PlayerLightSettings.h"
 #include "Materials/MaterialParameterCollection.h"
-#include "Materials/MaterialParameterCollectionInstance.h"
-#include "Materials/MaterialInstanceConstant.h"
 #include "Widgets/SCompoundWidget.h"
 #include "CoreMinimal.h"
 
@@ -21,41 +19,29 @@ public:
 	void Construct(const FArguments& InArgs);
 
 private:
-	void OnFinishedChangingMainLight(const FPropertyChangedEvent& InEvent);
-
-public:
-	UMaterialParameterCollection* MPC; 
-
+	UMaterialParameterCollection* MPC;
 	UPlayerLightSettings* LightSetting;
+	TSharedPtr<SComboBox<TSharedPtr<FString>>> LightComboBox;
+	TSharedPtr<SEditableTextBox> PlanNameText;
+	TSharedPtr<STextBlock> ComboBoxSelectedText;
+	TArray<TSharedPtr<FString>> SourceComboList;
+	TSharedPtr<SVerticalBox> ParamsContainer;
+	TArray<TSharedPtr<SImage>>  ColorImageArray;
+	ALight* SelectedLight;
 
 private:
-	void GetAllSceneLight();
+	void OnFinishedChangingMainLight(const FPropertyChangedEvent& InEvent);
+	void RefreshLightComboList();
+	void RefreshMPCWidgets();
 	void FindSceneLight(const FString lightName);
 	TSharedRef<SWidget> GenerateSourceComboItem(TSharedPtr<FString> InItem);
 	void HandleSourceComboChanged(TSharedPtr<FString> Item, ESelectInfo::Type SelectInfo);
 	void OnComboBoxOpening();
-private:
-
-	TSharedPtr<SComboBox<TSharedPtr<FString>>> PlanComboBox;
-	TSharedPtr<SEditableTextBox> PlanNameText;
-	TSharedPtr<STextBlock> ComboBoxSelectedText;
-	TArray<TSharedPtr<FString>> SourceComboList;
-
-	TSharedPtr<SVerticalBox> ParamsContainer;
-
-	TArray<TSharedPtr<SImage>>  ColorImageArray;
-
-
 	FReply OnClickColorBlock(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent, FString name, FLinearColor defaultColor, int32 ColorImageIndex);
 	void OnColorPickerWindowClosed(const TSharedRef<SWindow>& Window);
 	void OnSetColorFromColorPicker(FLinearColor NewColor, FString name, int32 ColorImageIndex);
-
-	ALight* SelectedLight;
-
-private:
 	void AddScalarParam(const FString name, float value);
 	void AddVectorParam(const FString name, FLinearColor value, int32 index);
-
 	void OnScalarValueChanged(float value, const FString name);
 	void OnScalarVectorChanged(FLinearColor value, const FString name);
 };

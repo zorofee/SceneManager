@@ -39,6 +39,7 @@ public:
 	void AddMaterialGroup(const FMaterialGroupInfo& groupInfo);
 	void DeleteMaterialGroup(TSharedPtr<FMaterialGroupInfo> matInfo);
 	void ClearMaterialGroup();
+	void ResetMaterialGroupParent(const FString planName);
 
 
 	/*

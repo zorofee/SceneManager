@@ -31,6 +31,10 @@ public:
 
 	void Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialInfo>& MatInfo);
 
+	void ChangeSelectedMatInstance();
+
+	void SelectedRepeatedMatInstance();
+
 private:
 
 	void SaveMaterialInfo(const TSharedPtr<const FMaterialInfo>& MatInfo);
@@ -69,6 +73,7 @@ private:
 	void SetMaterialInstanceVectorParam(FString name, FLinearColor color);
 
 	void SaveMaterialInstance();
+
 
 private:
 

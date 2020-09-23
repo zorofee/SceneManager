@@ -2,11 +2,8 @@
 
 
 #include "SSceneMaterialManager.h"
-#include "Widgets/Docking/SDockTab.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Text/STextBlock.h"
-#include "ToolMenus.h"
-#include "Widgets/Input/SSearchBox.h"
 #include "Widgets/Input/SEditableTextBox.h"
 #include "DelegateManager.h"
 
@@ -275,6 +272,14 @@ void SSceneMaterialManager::ClearMaterialGroup()
 {
 	MatGroupItems.Empty();
 	MatGroupListView->RequestListRefresh();
+}
+
+void SSceneMaterialManager::ResetMaterialGroupParent(const FString planName)
+{
+	for (size_t i = 0; i < MatGroupItems.Num(); i++)
+	{
+		MatGroupItems[i]->Parent = planName;
+	}
 }
 
 

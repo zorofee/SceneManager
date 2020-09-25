@@ -109,12 +109,12 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 
 					+ SVerticalBox::Slot()
 					[
-						SAssignNew(SceneLightManager, SSceneLightManager)
+						SAssignNew(SceneLightManager, SPlayerLightManager, TEXT("/Game/MPC_Scene.MPC_Scene"))
 					]
 
 					+ SVerticalBox::Slot()
 					[
-						SAssignNew(PlayerLightManager, SPlayerLightManager)
+						SAssignNew(PlayerLightManager, SPlayerLightManager, TEXT("/Game/MPC_Player.MPC_Player"))
 					]
 				]
 			]

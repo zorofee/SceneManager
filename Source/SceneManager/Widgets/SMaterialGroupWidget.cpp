@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "SMaterialGroupWidget.h"
@@ -54,7 +54,7 @@ void SMaterialGroupWidget::Construct(const FArguments& InArgs, const TSharedPtr<
 			[
 				SNew(SButton)
 				.OnClicked(this, &SMaterialGroupWidget::AddNewMaterialInstance)
-				.Text(FText::FromString(TEXT("+ New Mat")))
+				.Text(FText::FromString(TEXT("+ æ·»åŠ æè´¨")))
 				.ContentPadding(2.0f)
 			]
 
@@ -64,7 +64,7 @@ void SMaterialGroupWidget::Construct(const FArguments& InArgs, const TSharedPtr<
 			[
 				SNew(SButton)
 				.OnClicked(this, &SMaterialGroupWidget::OnRemoveGroupButtonClicked)
-				.Text(FText::FromString(TEXT("Remove Group")))
+				.Text(FText::FromString(TEXT("åˆ é™¤åˆ†ç»„")))
 				.ContentPadding(2.0f)
 			]
 
@@ -89,7 +89,7 @@ void SMaterialGroupWidget::Construct(const FArguments& InArgs, const TSharedPtr<
 	];
 
 
-	//Èç¹ûÒÑÓÐ²ÄÖÊÁÐ±í,ÔòÐèÒªË¢ÐÂ
+	//å¦‚æžœå·²æœ‰æè´¨åˆ—è¡¨,åˆ™éœ€è¦åˆ·æ–°
 	if (GroupInfo->MatList.Num()>0)
 	{
 		for (TPair<FString, FMaterialInfo> iterator : GroupInfo->MatList)
@@ -99,7 +99,7 @@ void SMaterialGroupWidget::Construct(const FArguments& InArgs, const TSharedPtr<
 	}
 	else
 	{
-		//Ã»ÓÐ²ÄÖÊÁÐ±íÔò´´½¨Ò»¸öÄ¬ÈÏµÄ
+		//æ²¡æœ‰æè´¨åˆ—è¡¨åˆ™åˆ›å»ºä¸€ä¸ªé»˜è®¤çš„
 		AddNewMaterialInstance();
 	}
 }

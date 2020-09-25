@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "SPlayerLightManager.h"
@@ -8,12 +8,12 @@
 #include "Widgets/Input/SSpinBox.h"
 #include "Widgets/Colors/SColorPicker.h"
 
-void SPlayerLightManager::Construct(const FArguments& InArgs)
+void SPlayerLightManager::Construct(const FArguments& InArgs, const FString MPCPath)
 {
 	FDetailsViewArgs DetailsViewArgs(false, false, true, FDetailsViewArgs::HideNameArea, true);
 	DetailsViewArgs.bAllowSearch = false;
 	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-	UMaterialParameterCollection* loadasset = Cast<UMaterialParameterCollection>(StaticLoadObject(UMaterialParameterCollection::StaticClass(), NULL, TEXT("/Game/MPC_Player.MPC_Player")));
+	UMaterialParameterCollection* loadasset = Cast<UMaterialParameterCollection>(StaticLoadObject(UMaterialParameterCollection::StaticClass(), NULL,/* TEXT("/Game/MPC_Player.MPC_Player")*/*MPCPath));
 
 
 	if (loadasset != nullptr)
@@ -56,7 +56,7 @@ void SPlayerLightManager::Construct(const FArguments& InArgs)
 					[
 						SNew(STextBlock)
 						.TextStyle(FEditorStyle::Get(), "PlacementBrowser.Tab.Text")
-						.Text(FText::FromString(TEXT("Select Light Source:")))
+						.Text(FText::FromString(TEXT("选择场景灯光:")))
 					]
 
 					+SHorizontalBox::Slot()
@@ -97,7 +97,7 @@ void SPlayerLightManager::Construct(const FArguments& InArgs)
 				[
 					SNew(STextBlock)
 					.TextStyle(FEditorStyle::Get(), "PlacementBrowser.Tab.Text")
-					.Text(FText::FromString(TEXT("Player Light MPC")))
+					.Text(FText::FromString(TEXT("全局参数")))
 				]
 				
 				+SVerticalBox::Slot()
@@ -166,9 +166,12 @@ void SPlayerLightManager::FindSceneLight(const FString lightName)
 
 void SPlayerLightManager::OnFinishedChangingMainLight(const FPropertyChangedEvent& InEvent)
 {
-	SelectedLight->SetLightColor(LightSetting->color);
-	SelectedLight->GetLightComponent()->SetIntensity(LightSetting->intensity);
-	SelectedLight->GetLightComponent()->SetWorldRotation(LightSetting->rotation);
+	if (SelectedLight)
+	{
+		SelectedLight->SetLightColor(LightSetting->color);
+		SelectedLight->GetLightComponent()->SetIntensity(LightSetting->intensity);
+		SelectedLight->GetLightComponent()->SetWorldRotation(LightSetting->rotation);
+	}
 }
 
 

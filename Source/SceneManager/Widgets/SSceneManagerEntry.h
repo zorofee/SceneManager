@@ -28,8 +28,9 @@ private:
 public:
 	TSharedPtr<SSceneMaterialManager> SceneMaterialManager;
 	TSharedPtr<SPostProcessManager> PostProcessManager;
-	TSharedPtr<SSceneLightManager> SceneLightManager;
+//	TSharedPtr<SSceneLightManager> SceneLightManager;
 	TSharedPtr<SPlayerLightManager> PlayerLightManager;
+	TSharedPtr<SPlayerLightManager> SceneLightManager;
 private:
 	FName ActiveTabName;
 	bool bNeedsUpdate;

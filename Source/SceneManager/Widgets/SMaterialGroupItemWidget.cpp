@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "SMaterialGroupItemWidget.h"
@@ -27,12 +27,17 @@ void SMaterialGroupItemEntry::Construct(const FArguments& InArgs, const TSharedP
 
 
 /*
-²ÄÖÊ¿Ø¼şÓĞÁ½ÖÖ´´½¨·½Ê½:
-1.ĞÂÔö,´ËÊ±²ÎÊıÈ«Îª¿Õ;
-2.¸ù¾İ±£´æÊı¾İ¼ÓÔØ,´ËÊ±²ÎÊı°´ÕÕ¼ÓÔØµÄ²ÄÖÊÇòÉÏµÄ²ÎÊı´´½¨¡£
+æè´¨æ§ä»¶æœ‰ä¸¤ç§åˆ›å»ºæ–¹å¼:
+1.æ–°å¢,æ­¤æ—¶å‚æ•°å…¨ä¸ºç©º;
+2.æ ¹æ®ä¿å­˜æ•°æ®åŠ è½½,æ­¤æ—¶å‚æ•°æŒ‰ç…§åŠ è½½çš„æè´¨çƒä¸Šçš„å‚æ•°åˆ›å»ºã€‚
 */
 void SMaterialGroupItemWidget::Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialInfo>& MatInfo)
 {
+	GroupNameSet.Emplace(TEXT("LevelMaterial"));
+	GroupNameSet.Emplace(TEXT("Ref"));
+	GroupNameSet.Emplace(TEXT("è¾…å…‰"));
+	GroupNameSet.Emplace(TEXT("HSV"));
+
 	SaveMaterialInfo(MatInfo);
 
 	FDetailsViewArgs DetailsViewArgs(false, false, true, FDetailsViewArgs::HideNameArea, true);
@@ -61,7 +66,7 @@ void SMaterialGroupItemWidget::Construct(const FArguments& InArgs, const TShared
 			]
 
 	
-		//²âÊÔÓÃ
+		//æµ‹è¯•ç”¨
 		/*+ SVerticalBox::Slot()
 		.AutoHeight()
 		[
@@ -72,7 +77,7 @@ void SMaterialGroupItemWidget::Construct(const FArguments& InArgs, const TShared
 		];
 
 	
-	//Èç¹ûÒÑÓĞ²ÄÖÊÂ·¾¶ÔòÖ±½Ó¸ù¾İÒÑÓĞµÄÊı¾İË¢ĞÂ²ÎÊı
+	//å¦‚æœå·²æœ‰æè´¨è·¯å¾„åˆ™ç›´æ¥æ ¹æ®å·²æœ‰çš„æ•°æ®åˆ·æ–°å‚æ•°
 	if (m_MaterialInfo->MatPath != TEXT(""))
 	{
 		LoadMaterialInstanceByInfo();
@@ -115,11 +120,11 @@ void SMaterialGroupItemWidget::ChangeSelectedMatInstance()
 
 	AnalysisMaterialParamsAndPath();
 
-	//¸üĞÂÊı¾İ²ã
+	//æ›´æ–°æ•°æ®å±‚
 	DelegateManager::Get()->AddSceneMatInstance.Broadcast(m_MaterialInfo);
 	if (originPath == TEXT(""))
 	{
-		//ÈôÖ®Ç°²ÄÖÊÇòÎª¿ÕÇÒµ±Ç°Ñ¡Ôñ²ÄÖÊÇò²»Îª¿Õ£¬ÔòË¢ĞÂÊı¾İ
+		//è‹¥ä¹‹å‰æè´¨çƒä¸ºç©ºä¸”å½“å‰é€‰æ‹©æè´¨çƒä¸ä¸ºç©ºï¼Œåˆ™åˆ·æ–°æ•°æ®
 		if (m_MaterialInfo->MatPath != TEXT(""))
 			DelegateManager::Get()->OnMatParamChanged.Broadcast(m_MaterialInfo);
 	}
@@ -127,12 +132,12 @@ void SMaterialGroupItemWidget::ChangeSelectedMatInstance()
 	{
 		if (m_MaterialInfo->MatPath == originPath)
 		{
-			//ÈôÖ®Ç°²ÄÖÊÇò²»Îª¿Õ,µ±Ç°Ñ¡Ôñ²ÄÖÊÇò¸úÖ®Ç°Ò»Ñù£¨Ñ¡clearÊ±Ò»Ñù£©£¬ÔòÉ¾³ı
+			//è‹¥ä¹‹å‰æè´¨çƒä¸ä¸ºç©º,å½“å‰é€‰æ‹©æè´¨çƒè·Ÿä¹‹å‰ä¸€æ ·ï¼ˆé€‰clearæ—¶ä¸€æ ·ï¼‰ï¼Œåˆ™åˆ é™¤
 			DelegateManager::Get()->DeleteSceneMatInstance.Broadcast(m_MaterialInfo);
 		}
 		else
 		{
-			//ÈôÖ®Ç°²ÄÖÊÇòºÍµ±Ç°Ñ¡ÔñµÄ²ÄÖÊÇò¶¼²»Îª¿Õ,£¬ÔòÌæ»»Êı¾İ
+			//è‹¥ä¹‹å‰æè´¨çƒå’Œå½“å‰é€‰æ‹©çš„æè´¨çƒéƒ½ä¸ä¸ºç©º,ï¼Œåˆ™æ›¿æ¢æ•°æ®
 			DelegateManager::Get()->ReplaceSceneMatInstance.Broadcast(m_MaterialInfo, originPath);
 		}
 	}
@@ -274,14 +279,14 @@ void SMaterialGroupItemWidget::LoadMaterialInstanceByInfo()
 	{
 		lms->material = Cast<UMaterialInstance>(loadMat);
 		
-		/*ÏÈ¸ù¾İ±£´æµÄÊı¾İ´´½¨³ö²ÎÊıslot,ÕâÒ»²½Ó¦¸ÃÒª¸úµ±Ç°²ÄÖÊµÄ²ÎÊı×ö¶Ô±È*/
+		/*å…ˆæ ¹æ®ä¿å­˜çš„æ•°æ®åˆ›å»ºå‡ºå‚æ•°slot,è¿™ä¸€æ­¥åº”è¯¥è¦è·Ÿå½“å‰æè´¨çš„å‚æ•°åšå¯¹æ¯”*/
 		AnalysisMaterialParamsAndPath();
 		
 		ResetMaterialInstanceConstant();
 	}
 }
 
-/*ÔÚ¸ù¾İ±£´æµÄÊı¾İË¢Ò»±é²ÄÖÊÇò*/
+/*åœ¨æ ¹æ®ä¿å­˜çš„æ•°æ®åˆ·ä¸€éæè´¨çƒ*/
 void SMaterialGroupItemWidget::ResetMaterialInstanceConstant()
 {
 	for (TPair<FString, FLinearColor> item : m_MaterialInfo->VectorParams)
@@ -295,7 +300,7 @@ void SMaterialGroupItemWidget::ResetMaterialInstanceConstant()
 	}
 }
 
-/*ÔÚ¶ÁÈ¡²ÄÖÊÇòÊ±,½«±¾µØ±£´æµÄÊı¾İÓë²ÄÖÊÇòÉÏµÄÊı¾İ×ö¶Ô±È*/
+/*åœ¨è¯»å–æè´¨çƒæ—¶,å°†æœ¬åœ°ä¿å­˜çš„æ•°æ®ä¸æè´¨çƒä¸Šçš„æ•°æ®åšå¯¹æ¯”*/
 void SMaterialGroupItemWidget::AnalysisMaterialParamsAndPath()
 {
 	ParamContainer.Get()->ClearChildren();
@@ -322,7 +327,7 @@ void SMaterialGroupItemWidget::AnalysisMaterialParamsAndPath()
 			UE_LOG(LogTemp, Warning, TEXT("Group name is %s , %s"), *groupName.ToString(), *ParameterInfo[i].Name.ToString());
 
 			GroupName = groupName.ToString();
-			if (GroupName.Equals(TEXT("LevelMaterial")))
+			if (GroupNameSet.Contains(GroupName))
 			{
 				ParamName = ParameterInfo[i].Name.ToString();
 				Material->GetScalarParameterValue(ParameterInfo[i], ScalarValue);
@@ -340,7 +345,7 @@ void SMaterialGroupItemWidget::AnalysisMaterialParamsAndPath()
 			Material->GetGroupName(ParameterInfo[i], groupName);
 
 			GroupName = groupName.ToString();
-			if (GroupName.Equals(TEXT("LevelMaterial")))
+			if (GroupNameSet.Contains(GroupName))
 			{
 				ParamName = ParameterInfo[i].Name.ToString();
 				Material->GetVectorParameterValue(ParameterInfo[i], VectorValue);
@@ -349,7 +354,7 @@ void SMaterialGroupItemWidget::AnalysisMaterialParamsAndPath()
 		}
 
 
-		/*ÒòÎª²ÄÖÊÇò¿ÉÄÜÓĞĞŞ¸Ä£¬Òò´ËÔÚÉèÖÃ±¾µØÊı¾İÖ®Ç°ÏÈÒª½øĞĞ¶Ô±È,½«²ÄÖÊÇòºÍ±¾µØÊı¾İÖĞ¶¼ÓĞµÄÊı¾İ¸üĞÂ*/
+		/*å› ä¸ºæè´¨çƒå¯èƒ½æœ‰ä¿®æ”¹ï¼Œå› æ­¤åœ¨è®¾ç½®æœ¬åœ°æ•°æ®ä¹‹å‰å…ˆè¦è¿›è¡Œå¯¹æ¯”,å°†æè´¨çƒå’Œæœ¬åœ°æ•°æ®ä¸­éƒ½æœ‰çš„æ•°æ®æ›´æ–°*/
 		for (TPair<FString, float> item : TempScalarParams)
 		{
 			if (m_MaterialInfo->ScalarParams.Contains(item.Key))
@@ -414,7 +419,7 @@ void SMaterialGroupItemWidget::AddParamsToSlot()
 
 void SMaterialGroupItemWidget::SetMaterialInstanceScalarParam(FString name, float scalar)
 {
-	//ĞŞ¸Ä×ÊÔ´ä¯ÀÀÆ÷ÖĞµÄ²ÄÖÊÊµÀı
+	//ä¿®æ”¹èµ„æºæµè§ˆå™¨ä¸­çš„æè´¨å®ä¾‹
 	UMaterialInstanceConstant* matInsConstant = Cast<UMaterialInstanceConstant>(lms->material);
 	TArray<FMaterialParameterInfo> ParameterInfo;
 	TArray<FGuid> ParameterGuids;
@@ -431,7 +436,7 @@ void SMaterialGroupItemWidget::SetMaterialInstanceScalarParam(FString name, floa
 		matInsConstant->GetGroupName(ParameterInfo[i], groupName);
 
 		GroupName = groupName.ToString();
-		if (GroupName.Equals(TEXT("LevelMaterial")))
+		if (GroupNameSet.Contains(GroupName))
 		{
 			ParamName = ParameterInfo[i].Name.ToString();
 			if (ParamName == name)
@@ -445,7 +450,7 @@ void SMaterialGroupItemWidget::SetMaterialInstanceScalarParam(FString name, floa
 void SMaterialGroupItemWidget::SetMaterialInstanceVectorParam(FString name, FLinearColor color)
 {
 	UE_LOG(LogTemp, Warning, TEXT("SetMaterialInstanceVectorParam "));
-	//ĞŞ¸Ä×ÊÔ´ä¯ÀÀÆ÷ÖĞµÄ²ÄÖÊÊµÀı
+	//ä¿®æ”¹èµ„æºæµè§ˆå™¨ä¸­çš„æè´¨å®ä¾‹
 	UMaterialInstanceConstant* matInsConstant = Cast<UMaterialInstanceConstant>(lms->material);
 	TArray<FMaterialParameterInfo> ParameterInfo;
 	TArray<FGuid> ParameterGuids;
@@ -462,7 +467,7 @@ void SMaterialGroupItemWidget::SetMaterialInstanceVectorParam(FString name, FLin
 		matInsConstant->GetGroupName(ParameterInfo[i], groupName);
 
 		GroupName = groupName.ToString();
-		if (GroupName.Equals(TEXT("LevelMaterial")))
+		if (GroupNameSet.Contains(GroupName))
 		{
 			ParamName = ParameterInfo[i].Name.ToString();
 			if (ParamName == name)

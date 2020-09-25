@@ -87,4 +87,6 @@ private:
 
 	FReply OnTest();
 
+	TSet<FString> GroupNameSet;
+
 };

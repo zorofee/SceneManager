@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "SSceneMaterialManager.h"
@@ -22,7 +22,7 @@ void SSceneMaterialManager::Construct(const FArguments& InArgs)
 	[
 		SNew(SVerticalBox)
 
-		//ѡ���
+		//选择层
 		+ SVerticalBox::Slot()
 		.AutoHeight()
 		[
@@ -31,7 +31,7 @@ void SSceneMaterialManager::Construct(const FArguments& InArgs)
 			.AutoWidth()
 			[
 				SNew(SButton)
-				.Text(FText::FromString("+ New Plan"))
+				.Text(FText::FromString(TEXT("+ 新建方案")))
 				.OnClicked(this, &SSceneMaterialManager::OnAddPlanNameButtonClicked)
 				.ContentPadding(4.0f)
 			]
@@ -41,11 +41,11 @@ void SSceneMaterialManager::Construct(const FArguments& InArgs)
 			.Padding(20, 0, 0, 0)
 			[
 				SAssignNew(PlanNameText, SEditableTextBox)
-				.HintText(FText::FromString("Add new plan name"))
+				.HintText(FText::FromString(TEXT("输入新的材质方案名称")))
 			]
 		]
 
-		//������
+		//层名称
 		+ SVerticalBox::Slot()
 		.AutoHeight()
 		[
@@ -57,7 +57,7 @@ void SSceneMaterialManager::Construct(const FArguments& InArgs)
 			.VAlign(EVerticalAlignment::VAlign_Center)
 			[
 				SNew(STextBlock)
-				.Text(FText::FromString(TEXT("Current Plan")))
+				.Text(FText::FromString(TEXT("当前选择的方案:")))
 			]
 
 			+ SHorizontalBox::Slot()
@@ -81,13 +81,13 @@ void SSceneMaterialManager::Construct(const FArguments& InArgs)
 			[
 				SNew(SButton)
 				.OnClicked(this, &SSceneMaterialManager::OnDeleteCurrentPlan)
-				.Text(FText::FromString(TEXT("Delete Current Plan")))
+				.Text(FText::FromString(TEXT("删除当前方案")))
 
 			]
 		]
 
 
-		//���ʹ������
+		//材质管理面板
 		+SVerticalBox::Slot()
 		[
 			SAssignNew(SceneMaterialContent, SBox)
@@ -131,7 +131,7 @@ void SSceneMaterialManager::Construct(const FArguments& InArgs)
 			.AutoWidth()
 			[
 				SNew(SButton)
-				.Text(FText::FromString("+ New Group"))
+				.Text(FText::FromString(TEXT("+ 添加分组")))
 				.OnClicked(this, &SSceneMaterialManager::AddNewMaterialGroup)
 				.ContentPadding(4.0f)
 			]
@@ -142,7 +142,7 @@ void SSceneMaterialManager::Construct(const FArguments& InArgs)
 
 			[
 				SAssignNew(GroupNameText, SEditableTextBox)
-				.HintText(FText::FromString("Add new group name"))
+				.HintText(FText::FromString(TEXT("输入新的材质分组名称")))
 			]
 		]
 
@@ -163,7 +163,7 @@ FReply SSceneMaterialManager::OnAddPlanNameButtonClicked()
 	FString planName = PlanNameText->GetText().ToString();
 	if (planName != TEXT(""))
 	{
-		//��Ϊ��ʱ���ӳɹ�
+		//不为空时添加成功
 		DelegateManager::Get()->AddSceneMatPlan.Broadcast(planName);
 	}
 	return FReply::Handled();

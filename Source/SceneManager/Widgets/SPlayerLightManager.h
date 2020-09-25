@@ -16,7 +16,7 @@ public:
 	SLATE_BEGIN_ARGS(SPlayerLightManager) {}
 	SLATE_END_ARGS();
 
-	void Construct(const FArguments& InArgs);
+	void Construct(const FArguments& InArgs,const FString MPCPath = TEXT(""));
 
 private:
 	UMaterialParameterCollection* MPC;

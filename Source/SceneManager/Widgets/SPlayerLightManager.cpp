@@ -249,7 +249,7 @@ void SPlayerLightManager::AddVectorParam(const FString name, FLinearColor value,
 		.Padding(5, 5, 5, 5)
 		[
 			SAssignNew(ColorImageArray[index], SImage)
-			.ColorAndOpacity(FSlateColor(value))
+			.ColorAndOpacity(FSlateColor(FLinearColor(value.R, value.G, value.B, 1.0f)))
 			.OnMouseButtonDown(this, &SPlayerLightManager::OnClickColorBlock, name, value, index)
 		]
 	];

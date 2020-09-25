@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "MaterialIntermediate.h"
@@ -109,17 +109,17 @@ void MaterialIntermediate::AddMatPlan(FString planName)
 {
 	if (!PlanList.Contains(planName))
 	{
-		//1.Ìí¼ÓÊı¾İ
+		//1.æ·»åŠ æ•°æ®
 		FMaterialPlanInfo planData;
 		planData.Name = planName;
 		PlanList.Emplace(planName, planData);
 
-		//2.Ë¢ĞÂComboboxÁĞ±í
+		//2.åˆ·æ–°Comboboxåˆ—è¡¨
 		TArray<FString> planNameArr;
 		PlanList.GenerateKeyArray(planNameArr);
 		SceneManagerTools->SceneMaterialManager->ResetPlanComboBox(planNameArr);
 
-		//3.Ë¢ĞÂµ×ÏÂ²ÄÖÊÊı¾İÎªµ±Ç°Ñ¡ÖĞµÄ·½°¸
+		//3.åˆ·æ–°åº•ä¸‹æè´¨æ•°æ®ä¸ºå½“å‰é€‰ä¸­çš„æ–¹æ¡ˆ
 		SelectMatPlan(planName);
 	}
 }
@@ -130,15 +130,15 @@ void MaterialIntermediate::DeleteMatPlan(FString planName)
 	if (PlanList.Contains(planName))
 	{
 		//UE_LOG(LogTemp,Warning,TEXT("DeleteMatPlan"));
-		//1.„h³ıÊı¾İ
+		//1.åˆªé™¤æ•°æ®
 		PlanList.Remove(planName);
 
-		//2.Ë¢ĞÂComboboxÁĞ±í
+		//2.åˆ·æ–°Comboboxåˆ—è¡¨
 		TArray<FString> planNameArr;
 		PlanList.GenerateKeyArray(planNameArr);
 		SceneManagerTools->SceneMaterialManager->ResetPlanComboBox(planNameArr);
 
-		//3.Ë¢ĞÂµ×ÏÂ²ÄÖÊÊı¾İÎªÄ¬ÈÏµÚÒ»¸ö
+		//3.åˆ·æ–°åº•ä¸‹æè´¨æ•°æ®ä¸ºé»˜è®¤ç¬¬ä¸€ä¸ª
 		if (planNameArr.Num() > 0)
 		{
 			SelectMatPlan(planNameArr[0]);
@@ -152,10 +152,10 @@ void MaterialIntermediate::SelectMatPlan(const FString planName)
 {
 	UE_LOG(LogTemp, Warning, TEXT("SelectMatPlan 000 %s"), *planName);
 	currentPlan = planName;
-	//1.Ë¢ĞÂComboboxÁĞ±íµÄÄ¬ÈÏÑ¡Ïî
+	//1.åˆ·æ–°Comboboxåˆ—è¡¨çš„é»˜è®¤é€‰é¡¹
 	SceneManagerTools->SceneMaterialManager->SetSelectedPlanName(currentPlan);
 
-	//2.¸üĞÂÏÂÃæµÄ²ÄÖÊ
+	//2.æ›´æ–°ä¸‹é¢çš„æè´¨
 	SceneManagerTools->SceneMaterialManager->ClearMaterialGroup();
 	if (PlanList.Contains(planName))
 	{
@@ -179,13 +179,13 @@ void MaterialIntermediate::AddMatGroup(FString groupName)
 	{
 		if (!PlanList[currentPlan].GroupList.Contains(groupName))
 		{
-			//1.Ìí¼ÓÊı¾İ
+			//1.æ·»åŠ æ•°æ®
 			FMaterialGroupInfo groupData;
 			groupData.GroupName = groupName;
 			groupData.Parent = currentPlan;
 			PlanList[currentPlan].GroupList.Emplace(groupData.GroupName, groupData);
 
-			//2.Ë¢ĞÂµ×ÏÂµÄ²ÄÖÊ
+			//2.åˆ·æ–°åº•ä¸‹çš„æè´¨
 			SceneManagerTools->SceneMaterialManager->AddMaterialGroup(groupData);
 		}
 	}
@@ -200,10 +200,10 @@ void MaterialIntermediate::DeleteMatGroup(TSharedPtr<FMaterialGroupInfo> matInfo
 	{
 		if (PlanList[plan].GroupList.Contains(group))
 		{
-			//1.ÒÆ³ıÊı¾İ
+			//1.ç§»é™¤æ•°æ®
 			PlanList[plan].GroupList.Remove(group);
 
-			//2.Ë¢ĞÂUI
+			//2.åˆ·æ–°UI
 			SceneManagerTools->SceneMaterialManager->DeleteMaterialGroup(matInfo);
 
 		}
@@ -268,8 +268,8 @@ void MaterialIntermediate::DeleteMatInstance(TSharedPtr<FMaterialInfo> matInfo)
 	}
 
 	/*
-	ÔÚÇĞ»»²ÄÖÊÇòÊ±Ö»ĞèÒªÇå¿ÕÊı¾İ
-	ÔÚÉ¾³ı²ÄÖÊÇòÊ±ĞèÒªµ÷ÏÂÃæµÄ·½·¨
+	åœ¨åˆ‡æ¢æè´¨çƒæ—¶åªéœ€è¦æ¸…ç©ºæ•°æ®
+	åœ¨åˆ é™¤æè´¨çƒæ—¶éœ€è¦è°ƒä¸‹é¢çš„æ–¹æ³•
 	*/
 
 
@@ -311,6 +311,27 @@ void MaterialIntermediate::ReplaceMatInstance(TSharedPtr<FMaterialInfo> matInfo,
 
 void MaterialIntermediate::SelectMaterialInstance(FString newPath, TSharedPtr<FMaterialInfo> matInfo, SMaterialGroupItemWidget* widget)
 {
+	if (newPath.ToLower() == TEXT("none") && matInfo->MatPath == TEXT(""))
+	{
+		//æ·»åŠ æè´¨å,æƒ³åˆ é™¤å½“å‰çš„ç©ºæè´¨
+		if (PlanList.Contains(matInfo->ParentPlan))
+		{
+			SceneManagerTools->SceneMaterialManager->MatGroupItems.Empty();
+			SceneManagerTools->SceneMaterialManager->MatGroupListView->RequestListRefresh();
+
+			for (TPair<FString, FMaterialGroupInfo> groupIt : PlanList[matInfo->ParentPlan].GroupList)
+			{
+				if (SceneManagerTools->SceneMaterialManager)
+				{
+					SceneManagerTools->SceneMaterialManager->AddMaterialGroup(groupIt.Value);
+				}
+			}
+		}
+		return;
+	}
+
+
+
 	if (PlanList.Contains(matInfo->ParentPlan))
 	{
 		if (PlanList[matInfo->ParentPlan].GroupList.Contains(matInfo->ParentGroup))

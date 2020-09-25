@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "SSceneManagerEntry.h"
@@ -46,17 +46,17 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 	Category.UniqueHandle = FName(TEXT("PostProcess"));
 	Categories.Emplace(Category);
 
-	Category.DisplayName = FText::FromString(FString::Printf(TEXT("Wind")));
-	Category.UniqueHandle = FName(TEXT("Wind"));
-	Categories.Emplace(Category);
+	//Category.DisplayName = FText::FromString(FString::Printf(TEXT("Wind")));
+	//Category.UniqueHandle = FName(TEXT("Wind"));
+	//Categories.Emplace(Category);
 
-	Category.DisplayName = FText::FromString(FString::Printf(TEXT("Weather")));
-	Category.UniqueHandle = FName(TEXT("Weather"));
-	Categories.Emplace(Category);
+	//Category.DisplayName = FText::FromString(FString::Printf(TEXT("Weather")));
+	//Category.UniqueHandle = FName(TEXT("Weather"));
+	//Categories.Emplace(Category);
 
-	Category.DisplayName = FText::FromString(FString::Printf(TEXT("Tools")));
-	Category.UniqueHandle = FName(TEXT("Tools"));
-	Categories.Emplace(Category);
+	//Category.DisplayName = FText::FromString(FString::Printf(TEXT("Tools")));
+	//Category.UniqueHandle = FName(TEXT("Tools"));
+	//Categories.Emplace(Category);
 
 
 	for (int32 i = 0; i < Categories.Num(); i++)
@@ -109,12 +109,12 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 
 					+ SVerticalBox::Slot()
 					[
-						SAssignNew(SceneLightManager, SPlayerLightManager, TEXT("/Game/MPC_Scene.MPC_Scene"))
+						SAssignNew(SceneLightManager, SPlayerLightManager, TEXT("/Game/Materials/Shared/ParameterCollection/MPC_Scene.MPC_Scene"))
 					]
 
 					+ SVerticalBox::Slot()
 					[
-						SAssignNew(PlayerLightManager, SPlayerLightManager, TEXT("/Game/MPC_Player.MPC_Player"))
+						SAssignNew(PlayerLightManager, SPlayerLightManager, TEXT("/Game/Materials/Shared/ParameterCollection/MPC_Character.MPC_Character"))
 					]
 				]
 			]

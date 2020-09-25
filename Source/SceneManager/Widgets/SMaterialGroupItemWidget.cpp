@@ -18,6 +18,7 @@ void SMaterialGroupItemEntry::Construct(const FArguments& InArgs, const TSharedP
 	ChildSlot
 	[
 		SNew(SBorder)
+		.Padding(FMargin(5))
 		[
 			SNew(SMaterialGroupItemWidget, InItem)
 		]

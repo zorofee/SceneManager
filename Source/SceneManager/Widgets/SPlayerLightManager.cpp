@@ -13,26 +13,27 @@ void SPlayerLightManager::Construct(const FArguments& InArgs, const FString MPCP
 	FDetailsViewArgs DetailsViewArgs(false, false, true, FDetailsViewArgs::HideNameArea, true);
 	DetailsViewArgs.bAllowSearch = false;
 	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-	UMaterialParameterCollection* loadasset = Cast<UMaterialParameterCollection>(StaticLoadObject(UMaterialParameterCollection::StaticClass(), NULL,/* TEXT("/Game/MPC_Player.MPC_Player")*/*MPCPath));
+	UMaterialParameterCollection* ParameterCollection = Cast<UMaterialParameterCollection>(StaticLoadObject(UMaterialParameterCollection::StaticClass(), NULL,/* TEXT("/Game/MPC_Player.MPC_Player")*/*MPCPath));
 
-
-	if (loadasset != nullptr)
+	if (ParameterCollection != nullptr)
 	{
-		MPC = loadasset;
+
+		MPC = ParameterCollection;
+		
 	}
 	else
 	{
 		MPC = NewObject<UMaterialParameterCollection>();
 	}
 
+
 	TSharedRef<IDetailsView> MPCView = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
 	MPCView->SetObject(MPC);
-
-
 
 	TSharedRef<IDetailsView> PlayerLightView = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
 	PlayerLightView->OnFinishedChangingProperties().AddRaw(this, &SPlayerLightManager::OnFinishedChangingMainLight);
 	LightSetting = NewObject<UPlayerLightSettings>();
+	LightSetting->AddToRoot();
 	PlayerLightView->SetObject(LightSetting);
 
 	ChildSlot
@@ -270,7 +271,6 @@ FReply SPlayerLightManager::OnClickColorBlock(const FGeometry& MyGeometry, const
 		PickerArgs.InitialColorOverride = defaultColor;
 		PickerArgs.ParentWidget = ColorImageArray[ColorImageIndex];
 	}
-
 	OpenColorPicker(PickerArgs);
 	return FReply::Handled();
 }
@@ -283,28 +283,36 @@ void SPlayerLightManager::OnColorPickerWindowClosed(const TSharedRef<SWindow>& W
 void SPlayerLightManager::OnSetColorFromColorPicker(FLinearColor NewColor, FString name, int32 ColorImageIndex)
 {
 	ColorImageArray[ColorImageIndex]->SetColorAndOpacity(NewColor);
-	OnScalarVectorChanged(NewColor,name);
+	OnVectorValueChanged(NewColor,name);
 }
 
 
 void SPlayerLightManager::OnScalarValueChanged(float value, const FString name)
 {
+
+	UWorld* World = GEditor->GetEditorWorldContext().World();
+	MPCIns = World->GetParameterCollectionInstance(MPC);
 	for (size_t i = 0; i < MPC->ScalarParameters.Num(); i++)
 	{
 		if (MPC->ScalarParameters[i].ParameterName.ToString() == name)
 		{
 			MPC->ScalarParameters[i].DefaultValue = value;
+			MPCIns->SetScalarParameterValue(MPC->ScalarParameters[i].ParameterName,value);
 		}
 	}
 }
 
-void SPlayerLightManager::OnScalarVectorChanged(FLinearColor value,const FString name)
+void SPlayerLightManager::OnVectorValueChanged(FLinearColor value,const FString name)
 {
+
+	UWorld* World = GEditor->GetEditorWorldContext().World();
+	MPCIns = World->GetParameterCollectionInstance(MPC);
 	for (size_t i = 0; i < MPC->VectorParameters.Num(); i++)
 	{
 		if (MPC->VectorParameters[i].ParameterName.ToString() == name)
 		{
 			MPC->VectorParameters[i].DefaultValue = value;
+			MPCIns->SetVectorParameterValue(MPC->VectorParameters[i].ParameterName, value);
 		}
 	}
 }

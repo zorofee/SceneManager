@@ -46,6 +46,7 @@ void SMaterialGroupItemWidget::Construct(const FArguments& InArgs, const TShared
 	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 	TSharedRef<IDetailsView> LevelMatView = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
 	lms = NewObject<ULevelMaterialSettings>();
+	lms->AddToRoot();
 	LevelMatView->SetObject(lms);
 	LevelMatView->OnFinishedChangingProperties().AddRaw(this, &SMaterialGroupItemWidget::OnFinishedChangingProperties);
 

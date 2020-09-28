@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 using UnrealBuildTool;
 
@@ -14,15 +14,15 @@ public class SceneManager : ModuleRules
 			}
 			);
 				
-		
-		PrivateIncludePaths.AddRange(
-			new string[] {
-				// ... add other private include paths required here ...
-			}
-			);
-			
-		
-		PublicDependencyModuleNames.AddRange(
+
+        PrivateIncludePaths.AddRange(
+        new string[] {
+               
+        }
+         );
+
+
+        PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"Core",

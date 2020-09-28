@@ -1,9 +1,10 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 #include "Engine/Light.h"
 #include "PlayerLightSettings.h"
 #include "Materials/MaterialParameterCollection.h"
+#include "Materials/MaterialParameterCollectionInstance.h"
 #include "Widgets/SCompoundWidget.h"
 #include "CoreMinimal.h"
 
@@ -20,6 +21,7 @@ public:
 
 private:
 	UMaterialParameterCollection* MPC;
+	UMaterialParameterCollectionInstance* MPCIns;
 	UPlayerLightSettings* LightSetting;
 	TSharedPtr<SComboBox<TSharedPtr<FString>>> LightComboBox;
 	TSharedPtr<SEditableTextBox> PlanNameText;
@@ -43,5 +45,5 @@ private:
 	void AddScalarParam(const FString name, float value);
 	void AddVectorParam(const FString name, FLinearColor value, int32 index);
 	void OnScalarValueChanged(float value, const FString name);
-	void OnScalarVectorChanged(FLinearColor value, const FString name);
+	void OnVectorValueChanged(FLinearColor value, const FString name);
 };

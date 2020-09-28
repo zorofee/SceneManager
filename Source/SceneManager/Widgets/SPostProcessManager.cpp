@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "SPostProcessManager.h"
@@ -18,6 +18,7 @@ void SPostProcessManager::RefreshContentList(/*FPostProcessSettings& PPS*/)
 	PostProcessView->OnFinishedChangingProperties().AddRaw(this, &SPostProcessManager::OnFinishedChangingProperties);
 	
 	Setting = NewObject<ULevelPostProcessSettings>();
+	Setting->AddToRoot();
 	GetScenePostProcessVolume();
 	PostProcessView->SetObject(Setting);
 

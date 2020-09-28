@@ -4,6 +4,7 @@
 #include "SPostProcessManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Scene.h"
+#include "Widgets/Input/SComboBox.h"
 
 void SPostProcessManager::Construct(const FArguments& InArgs)
 {
@@ -19,12 +20,45 @@ void SPostProcessManager::RefreshContentList(/*FPostProcessSettings& PPS*/)
 	
 	Setting = NewObject<ULevelPostProcessSettings>();
 	Setting->AddToRoot();
-	GetScenePostProcessVolume();
+	//GetScenePostProcessVolume();
 	PostProcessView->SetObject(Setting);
 
 	ChildSlot
 	[
-		PostProcessView
+		SNew(SVerticalBox)
+
+		+SVerticalBox::Slot()
+		.AutoHeight()
+		[
+			SNew(SHorizontalBox)
+
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			[
+				SNew(STextBlock)
+				.TextStyle(FEditorStyle::Get(), "PlacementBrowser.Tab.Text")
+				.Text(FText::FromString(TEXT("选择后处理体积:")))
+			]
+
+			+ SHorizontalBox::Slot()
+			.Padding(10, 0, 0, 0)
+			[
+				SAssignNew(PostProcessComboBox, SComboBox<TSharedPtr<FString>>)
+				.OptionsSource(&SourceComboList)
+				.OnGenerateWidget(this, &SPostProcessManager::GenerateSourceComboItem)
+				.OnSelectionChanged(this, &SPostProcessManager::HandleSourceComboChanged)
+				.OnComboBoxOpening(this, &SPostProcessManager::OnComboBoxOpening)
+				[
+					SAssignNew(ComboBoxSelectedText, STextBlock)
+					.Text(FText::FromString(FString::Printf(TEXT("Default"))))
+				]
+			]
+		]
+
+		+SVerticalBox::Slot()
+		[
+			PostProcessView
+		]
 	];
 }
 
@@ -45,7 +79,12 @@ void SPostProcessManager::GetScenePostProcessVolume()
 	for (size_t i = 0; i < actorList.Num(); i++)
 	{
 		APostProcessVolume* PostProcessVolume = Cast<APostProcessVolume>(actorList[i]);
-		GetPostProcessParams(*PostProcessVolume);
+		FString ppName = PostProcessVolume->GetName();
+		FString selectedName = *PostProcessComboBox->GetSelectedItem().Get();
+		if (ppName.Equals(selectedName))
+		{
+			GetPostProcessParams(*PostProcessVolume);
+		}
 	}
 }
 
@@ -247,4 +286,45 @@ void SPostProcessManager::GetPostProcessParams(APostProcessVolume& Volume)
 	Setting->bOverride_AmbientOcclusionMipThreshold = Volume.Settings.bOverride_AmbientOcclusionMipThreshold ;
 	Setting->bOverride_AmbientOcclusionOffsetScale = Volume.Settings.bOverride_AmbientOcclusionOffsetScale  ;
 	Setting->bOverride_AmbientOcclusionEdgeHighlight = Volume.Settings.bOverride_AmbientOcclusionEdgeHighlight  ;
+}
+
+
+
+
+TSharedRef<SWidget> SPostProcessManager::GenerateSourceComboItem(TSharedPtr<FString> InItem)
+{
+	return SNew(STextBlock).Text(FText::FromString(*InItem));
+}
+
+
+void SPostProcessManager::HandleSourceComboChanged(TSharedPtr<FString> Item, ESelectInfo::Type SelectInfo)
+{
+	if (Item.IsValid())
+	{
+		PostProcessComboBox->SetSelectedItem(Item);
+		ComboBoxSelectedText->SetText(FText::FromString(*Item.Get()));
+
+		GetScenePostProcessVolume();
+	}
+}
+
+void SPostProcessManager::OnComboBoxOpening()
+{
+	SourceComboList.Empty();
+	RefreshPostProcessComboList();
+	PostProcessComboBox->RefreshOptions();
+}
+
+void SPostProcessManager::RefreshPostProcessComboList()
+{
+	TArray<AActor*> actorList;
+	UWorld* World = GEditor->GetEditorWorldContext().World();
+	ULevel* Level = World->GetCurrentLevel();
+
+	UGameplayStatics::GetAllActorsOfClass(World, APostProcessVolume::StaticClass(), actorList);
+	UE_LOG(LogTemp, Warning, TEXT("Postprocess num is %d"), actorList.Num());
+	for (size_t i = 0; i < actorList.Num(); i++)
+	{
+		SourceComboList.Emplace(MakeShareable(new FString(actorList[i]->GetName())));
+	}
 }

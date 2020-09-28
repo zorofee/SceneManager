@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -35,5 +35,16 @@ public:
 	void GetPostProcessParams(APostProcessVolume& Volume);
 
 	void SetPostProcessParams(APostProcessVolume& Volume);
+
+
+	TSharedRef<SWidget> GenerateSourceComboItem(TSharedPtr<FString> InItem);
+	void HandleSourceComboChanged(TSharedPtr<FString> Item, ESelectInfo::Type SelectInfo);
+	void OnComboBoxOpening();
+	void RefreshPostProcessComboList();
+
+	TSharedPtr<SComboBox<TSharedPtr<FString>>> PostProcessComboBox;
+	TArray<TSharedPtr<FString>> SourceComboList;
+	TSharedPtr<STextBlock> ComboBoxSelectedText;
+
 
 };

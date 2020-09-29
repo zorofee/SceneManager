@@ -1,6 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
+#include "SSettingManager.h"
 #include "SSceneLightManager.h"
 #include "SPlayerLightManager.h"
 #include "SPostProcessManager.h"
@@ -31,6 +32,7 @@ public:
 //	TSharedPtr<SSceneLightManager> SceneLightManager;
 	TSharedPtr<SPlayerLightManager> PlayerLightManager;
 	TSharedPtr<SPlayerLightManager> SceneLightManager;
+	TSharedPtr<SSettingManager> SettingManager;
 private:
 	FName ActiveTabName;
 	bool bNeedsUpdate;

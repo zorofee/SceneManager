@@ -48,6 +48,9 @@ void MaterialIntermediate::AddEventListener()
 	if (!DelegateManager::Get()->SelectMaterialInstance.IsBound())
 		DelegateManager::Get()->SelectMaterialInstance.AddRaw(this, &MaterialIntermediate::SelectMaterialInstance);
 
+	if (!DelegateManager::Get()->PopupMsgDialog.IsBound())
+		DelegateManager::Get()->PopupMsgDialog.AddRaw(this, &MaterialIntermediate::PopupMsgDialog);
+
 }
 
 
@@ -122,6 +125,11 @@ void MaterialIntermediate::AddMatPlan(FString planName)
 		//3.刷新底下材质数据为当前选中的方案
 		SelectMatPlan(planName);
 	}
+	else
+	{
+		FString Warning = FString::Printf(TEXT("同名方案已经存在了哦"));
+		DelegateManager::Get()->PopupMsgDialog.Broadcast(Warning);
+	}
 }
 
 
@@ -187,6 +195,11 @@ void MaterialIntermediate::AddMatGroup(FString groupName)
 
 			//2.刷新底下的材质
 			SceneManagerTools->SceneMaterialManager->AddMaterialGroup(groupData);
+		}
+		else
+		{
+			FString Warning = FString::Printf(TEXT("同名分组已经存在了哦"));
+			DelegateManager::Get()->PopupMsgDialog.Broadcast(Warning);
 		}
 	}
 }
@@ -346,4 +359,11 @@ void MaterialIntermediate::SelectMaterialInstance(FString newPath, TSharedPtr<FM
 			}
 		}
 	}
+}
+
+
+void MaterialIntermediate::PopupMsgDialog(const FString content)
+{
+	FText Title = FText::FromString("Warning");
+	FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(*content), &Title);
 }

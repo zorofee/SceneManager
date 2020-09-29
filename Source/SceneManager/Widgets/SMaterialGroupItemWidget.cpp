@@ -78,7 +78,7 @@ void SMaterialGroupItemWidget::Construct(const FArguments& InArgs, const TShared
 		*/
 		];
 
-	
+
 	//如果已有材质路径则直接根据已有的数据刷新参数
 	if (m_MaterialInfo->MatPath != TEXT(""))
 	{
@@ -153,8 +153,8 @@ TSharedRef<SHorizontalBox> SMaterialGroupItemWidget::GetScalarParamSlot(FString 
 
 		//param1
 		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.HAlign(EHorizontalAlignment::HAlign_Left)
+
+		.HAlign(EHorizontalAlignment::HAlign_Right)
 		.VAlign(EVerticalAlignment::VAlign_Bottom)
 		[
 			SNew(STextBlock)
@@ -177,13 +177,6 @@ TSharedRef<SHorizontalBox> SMaterialGroupItemWidget::GetScalarParamSlot(FString 
 		.MinValue(0)
 		.MaxValue(1)
 		.Value(value)
-		]
-
-	+ SHorizontalBox::Slot()
-		.AutoWidth()
-		[
-			SNew(SBox)
-			.WidthOverride(20)
 		];
 
 }
@@ -198,8 +191,8 @@ TSharedRef<SHorizontalBox> SMaterialGroupItemWidget::GetVectorParamSlot(FString 
 		SNew(SHorizontalBox)
 
 		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.HAlign(EHorizontalAlignment::HAlign_Left)
+
+		.HAlign(EHorizontalAlignment::HAlign_Right)
 		.VAlign(EVerticalAlignment::VAlign_Bottom)
 		[
 			SNew(STextBlock)
@@ -216,7 +209,6 @@ TSharedRef<SHorizontalBox> SMaterialGroupItemWidget::GetVectorParamSlot(FString 
 
 	+ SHorizontalBox::Slot()
 	.Padding(10, 0, 10, 0)
-
 	[
 		SAssignNew(ColorImageArray[index], SImage)
 		.ColorAndOpacity(FSlateColor(value))
@@ -500,4 +492,7 @@ void SMaterialGroupItemWidget::SelectedRepeatedMatInstance()
 	ParamContainer.Get()->ClearChildren();
 	ColorImageArray.Empty();
 	lms->material = nullptr;
+
+	FString Warning = FString::Printf(TEXT("同名材质已经存在了哦"));
+	DelegateManager::Get()->PopupMsgDialog.Broadcast(Warning);
 }

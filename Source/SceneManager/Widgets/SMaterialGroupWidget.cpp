@@ -16,7 +16,10 @@ void SMaterialGroupEntry::Construct(const FArguments& InArgs, const TSharedPtr<c
 
 void SMaterialGroupWidget::Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialGroupInfo>& GroupInfo)
 {
+	
 	SaveGroupInfo(GroupInfo);
+
+	FString groupName = FString::Printf(TEXT("%s"),  *GroupInfo->GroupName);
 
 	ChildSlot
 	[
@@ -43,9 +46,9 @@ void SMaterialGroupWidget::Construct(const FArguments& InArgs, const TSharedPtr<
 			+ SHorizontalBox::Slot()
 			.VAlign(EVerticalAlignment::VAlign_Center)
 			[
-				SNew(STextBlock)
+				SAssignNew(GroupNameText,STextBlock)
 				.TextStyle(FEditorStyle::Get(), "PlacementBrowser.Tab.Text")
-				.Text(FText::FromString(GroupInfo->GroupName))
+				.Text(FText::FromString(*groupName))
 			]
 
 
@@ -60,7 +63,7 @@ void SMaterialGroupWidget::Construct(const FArguments& InArgs, const TSharedPtr<
 
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
-			.Padding(40, 0, 0, 0)
+			.Padding(25, 0, 0, 0)
 			[
 				SNew(SButton)
 				.OnClicked(this, &SMaterialGroupWidget::OnRemoveGroupButtonClicked)
@@ -77,7 +80,7 @@ void SMaterialGroupWidget::Construct(const FArguments& InArgs, const TSharedPtr<
 		[
 			SNew(SBorder)
 			.BorderImage(FEditorStyle::GetBrush("ToolPanel.DarkGroupBorder"))
-			.Padding(FMargin(30, 5))
+			.Padding(FMargin(20, 10))
 			[
 
 				SAssignNew(ListView, SListView<TSharedPtr<FMaterialInfo>>)
@@ -128,8 +131,11 @@ FReply SMaterialGroupWidget::AddNewMaterialInstance()
 	MatInfo->ParentPlan = m_GroupInfo->Parent;
 	FilteredItems.Emplace(MatInfo);
 	ListView->RequestListRefresh();
+
 	return FReply::Handled();
 }
+
+
 
 FReply SMaterialGroupWidget::OnRemoveGroupButtonClicked()
 {

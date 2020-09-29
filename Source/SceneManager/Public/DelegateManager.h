@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 #include "../Widgets/SMaterialGroupItemWidget.h"
@@ -21,6 +21,7 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(ReplaceSceneMatInstanceEvent, TSharedPtr<FM
 DECLARE_MULTICAST_DELEGATE_ThreeParams(SelectMaterialInstanceEvent,FString, TSharedPtr<FMaterialInfo>, SMaterialGroupItemWidget*)
 
 
+DECLARE_MULTICAST_DELEGATE_OneParam(PopupMsgDialogEvent, const FString)
 
 /**
  * 
@@ -60,5 +61,7 @@ public:
 	ReplaceSceneMatInstanceEvent ReplaceSceneMatInstance;
 
 	SelectMaterialInstanceEvent SelectMaterialInstance;
+
+	PopupMsgDialogEvent PopupMsgDialog;
 
 };

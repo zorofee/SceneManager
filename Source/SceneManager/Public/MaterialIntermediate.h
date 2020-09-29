@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -23,6 +23,7 @@ public:
 
 	void LoadGameData(const FString loadPlanName = "");
 
+	void PopupMsgDialog(const FString content);
 
 public:
 	void AddEventListener();
@@ -48,7 +49,7 @@ public:
 
 public:
 	/*
-		»º´æµÄÊı¾İ
+		ç¼“å­˜çš„æ•°æ®
 	*/
 	
 	//Material Plan

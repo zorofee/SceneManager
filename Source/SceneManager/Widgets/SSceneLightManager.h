@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 #include "Materials/MaterialParameterCollection.h"
@@ -16,9 +16,5 @@ public:
 
 	void Construct(const FArguments& InArgs);
 
-private:
-	void OnFinishedChangingProperties(const FPropertyChangedEvent& InEvent);
 
-private:
-	UMaterialParameterCollection* MPC;
 };

@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "SceneManager.h"
 #include "SceneManagerStyle.h"
@@ -7,7 +7,7 @@
 #include "ToolMenus.h"
 #include "DelegateManager.h"
 #include "Kismet/GameplayStatics.h"
-
+#include "SaveDataManager.h"
 
 
 static const FName SceneManagerTabName("SceneManager");
@@ -63,12 +63,12 @@ void FSceneManagerModule::ShutdownModule()
 TSharedRef<SDockTab> FSceneManagerModule::OnSpawnPluginTab(const FSpawnTabArgs& SpawnTabArgs)
 {
 
-	materialIntermediate->saveGame = Cast<USceneManagerSaveGame>(UGameplayStatics::CreateSaveGameObject(USceneManagerSaveGame::StaticClass()));
-	
+	SaveDataManager::Get()->LoadData();
+
 	auto OnTabClosed = [this](TSharedRef<SDockTab>)
 	{
 		// Tab closed - leave snapshot mode
-		materialIntermediate->SaveGameData();
+		SaveDataManager::Get()->SaveData();
 	};
 
 	FText WidgetText = FText::Format(
@@ -93,7 +93,7 @@ TSharedRef<SDockTab> FSceneManagerModule::OnSpawnPluginTab(const FSpawnTabArgs& 
 			]
 		];
 
-	 materialIntermediate->LoadGameData();
+	 materialIntermediate->LoadSceneManagerTools();
 
 	 return dockTab.ToSharedRef();
 

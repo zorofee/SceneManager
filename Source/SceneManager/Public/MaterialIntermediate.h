@@ -17,11 +17,8 @@ public:
 
 	TSharedPtr<SSceneManagerTools> SceneManagerTools;
 
-	USceneManagerSaveGame* saveGame;
 
-	void SaveGameData();
-
-	void LoadGameData(const FString loadPlanName = "");
+	void LoadSceneManagerTools();
 
 	void PopupMsgDialog(const FString content);
 
@@ -47,14 +44,6 @@ public:
 
 	void SelectMaterialInstance(FString newPath, TSharedPtr<FMaterialInfo> matInfo,  SMaterialGroupItemWidget* widget);
 
-public:
-	/*
-		缓存的数据
-	*/
-	
-	//Material Plan
-	FString currentPlan = TEXT("RedPlan");
-	TMap<FString, FMaterialPlanInfo> PlanList;
 
 
 };

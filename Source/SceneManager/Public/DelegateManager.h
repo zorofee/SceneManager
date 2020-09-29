@@ -5,8 +5,7 @@
 #include "DataStructures.h"
 #include "CoreMinimal.h"
 
-DECLARE_MULTICAST_DELEGATE(SaveGameDataEvent)
-DECLARE_MULTICAST_DELEGATE_OneParam(LoadGameDataEvent, FString)
+
 DECLARE_MULTICAST_DELEGATE_OneParam(RefreshPlanListEvent,FString)
 DECLARE_MULTICAST_DELEGATE_OneParam(AddSceneMatPlanEvent, FString)
 DECLARE_MULTICAST_DELEGATE_OneParam(AddSceneMatGroupEvent, FString)
@@ -45,10 +44,6 @@ public:
 	AddSceneMatInstanceEvent AddSceneMatInstance;
 
 	OnMatParamChanged OnMatParamChanged;
-
-	SaveGameDataEvent SaveGameData;
-
-	LoadGameDataEvent LoadGameData;
 
 	RefreshPlanListEvent RefreshPlanList;
 

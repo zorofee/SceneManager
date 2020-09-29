@@ -8,7 +8,8 @@
 #include "DelegateManager.h"
 
 #include "Widgets/Layout/SScrollBox.h"
-
+#include "Widgets/Input/SCheckBox.h"
+#include "SaveDataManager.h"
 
 
 void SSceneMaterialManager::Construct(const FArguments& InArgs)
@@ -42,6 +43,21 @@ void SSceneMaterialManager::Construct(const FArguments& InArgs)
 			[
 				SAssignNew(PlanNameText, SEditableTextBox)
 				.HintText(FText::FromString(TEXT("输入新的材质方案名称")))
+			]
+
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.Padding(20, 0, 0, 0)
+			[
+				SNew(SCheckBox)
+				.OnCheckStateChanged_Raw(this, &SSceneMaterialManager::CheckBoxChanged)
+				.IsChecked(ECheckBoxState::Unchecked)
+				[
+					SNew(STextBlock)
+					.Text(FText::FromString(TEXT("拷贝当前的方案")))
+				]
+
+				
 			]
 		]
 
@@ -221,6 +237,11 @@ void SSceneMaterialManager::ResetPlanComboBox(const TArray<FString> planNameList
 	PlanComboBox->RefreshOptions();
 }
 
+void SSceneMaterialManager::CheckBoxChanged(ECheckBoxState newState)
+{
+	SaveDataManager::Get()->bAllowCopySelectedPlan = newState == ECheckBoxState::Checked ? true : false;
+}
+
 
 TSharedRef<ITableRow> SSceneMaterialManager::OnGenerateWidgetForItem(TSharedPtr<FMaterialGroupInfo> InItem, const TSharedRef<STableViewBase>& OwnerTable)
 {
@@ -285,13 +306,12 @@ void SSceneMaterialManager::ResetMaterialGroupParent(const FString planName)
 
 FReply SSceneMaterialManager::TestSaveData()
 {
-	DelegateManager::Get()->SaveGameData.Broadcast();
 	return FReply::Handled();
 }
 
 FReply SSceneMaterialManager::TestReadData()
 {
-	DelegateManager::Get()->LoadGameData.Broadcast(TEXT("RedPlan"));
+	
 	return FReply::Handled();
 }
 

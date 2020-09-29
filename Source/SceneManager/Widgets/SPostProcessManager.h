@@ -23,16 +23,11 @@ public:
 
 	void OnFinishedChangingProperties(const FPropertyChangedEvent& InEvent);
 
-	ULevelPostProcessSettings* Setting;
-
 	void GetScenePostProcessVolume();
-
 
 	void GetPostProcessParams(APostProcessVolume& Volume);
 
 	void SetPostProcessParams(APostProcessVolume& Volume);
-	//void SetPostProcessParams(TSharedRef<APostProcessVolume> Volume);
-
 
 
 private:

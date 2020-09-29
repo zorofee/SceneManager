@@ -4,17 +4,10 @@
 #include "MaterialIntermediate.h"
 #include "DelegateManager.h"
 #include "Kismet/GameplayStatics.h"
+#include "SaveDataManager.h"
 
 void MaterialIntermediate::AddEventListener()
 {
-
-	if (!DelegateManager::Get()->SaveGameData.IsBound())
-		DelegateManager::Get()->SaveGameData.AddRaw(this, &MaterialIntermediate::SaveGameData);
-
-
-	if (!DelegateManager::Get()->LoadGameData.IsBound())
-		DelegateManager::Get()->LoadGameData.AddRaw(this, &MaterialIntermediate::LoadGameData);
-
 
 	if (!DelegateManager::Get()->AddSceneMatPlan.IsBound())
 		DelegateManager::Get()->AddSceneMatPlan.AddRaw(this, &MaterialIntermediate::AddMatPlan);
@@ -54,55 +47,13 @@ void MaterialIntermediate::AddEventListener()
 }
 
 
-
-void MaterialIntermediate::SaveGameData()
+void MaterialIntermediate::LoadSceneManagerTools()
 {
-	if (saveGame)
-	{
-		/*
-			Save Material Plan
-		*/
-		saveGame = Cast<USceneManagerSaveGame>(UGameplayStatics::CreateSaveGameObject(USceneManagerSaveGame::StaticClass()));
-		saveGame->PlanList = PlanList;
-		saveGame->DefaultPlan = currentPlan;
-		UE_LOG(LogTemp, Warning, TEXT("SaveGameData PlanList %d"), saveGame->PlanList.Num());
-
-
-
-		/*
-			Save Game Data
-		*/
-		UGameplayStatics::SaveGameToSlot(saveGame, TEXT("TestSlot"), 0);
-	}
-}
-
-void MaterialIntermediate::LoadGameData(const FString loadPlanName)
-{
-	saveGame = Cast<USceneManagerSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("TestSlot"), 0));
-	if (saveGame == nullptr)
-	{
-		saveGame = Cast<USceneManagerSaveGame>(UGameplayStatics::CreateSaveGameObject(USceneManagerSaveGame::StaticClass()));
-	}
-	else
-	{
-
-
-		/*
-			Refresh Material Plan
-		*/
-		UE_LOG(LogTemp, Warning, TEXT("LoadGameData %s"), *loadPlanName);
-		PlanList = saveGame->PlanList;
-		SelectMatPlan(saveGame->DefaultPlan);
-
-		//refresh combobox when first load savedata
-		TArray<FString> planNameArr;
-		PlanList.GenerateKeyArray(planNameArr);
-		SceneManagerTools->SceneMaterialManager->ResetPlanComboBox(planNameArr);
-	}
-
-	/*
-	Refresh PostProcess
-	*/
+	SelectMatPlan(SaveDataManager::Get()->saveGame->DefaultPlan);
+	//refresh combobox when first load savedata
+	TArray<FString> planNameArr;
+	SaveDataManager::Get()->saveGame->PlanList.GenerateKeyArray(planNameArr);
+	SceneManagerTools->SceneMaterialManager->ResetPlanComboBox(planNameArr);
 	SceneManagerTools->PostProcessManager->RefreshContentList();
 }
 
@@ -110,16 +61,20 @@ void MaterialIntermediate::LoadGameData(const FString loadPlanName)
 
 void MaterialIntermediate::AddMatPlan(FString planName)
 {
-	if (!PlanList.Contains(planName))
+	if (!SaveDataManager::Get()->saveGame->PlanList.Contains(planName))
 	{
 		//1.添加数据
 		FMaterialPlanInfo planData;
 		planData.Name = planName;
-		PlanList.Emplace(planName, planData);
+		if (SaveDataManager::Get()->bAllowCopySelectedPlan)
+		{
+			SaveDataManager::Get()->CopyPlanData(SaveDataManager::Get()->GetSelectedPlan(), &planData);
+		}
+		SaveDataManager::Get()->saveGame->PlanList.Emplace(planName, planData);
 
 		//2.刷新Combobox列表
 		TArray<FString> planNameArr;
-		PlanList.GenerateKeyArray(planNameArr);
+		SaveDataManager::Get()->saveGame->PlanList.GenerateKeyArray(planNameArr);
 		SceneManagerTools->SceneMaterialManager->ResetPlanComboBox(planNameArr);
 
 		//3.刷新底下材质数据为当前选中的方案
@@ -135,15 +90,15 @@ void MaterialIntermediate::AddMatPlan(FString planName)
 
 void MaterialIntermediate::DeleteMatPlan(FString planName)
 {
-	if (PlanList.Contains(planName))
+	if (SaveDataManager::Get()->saveGame->PlanList.Contains(planName))
 	{
 		//UE_LOG(LogTemp,Warning,TEXT("DeleteMatPlan"));
 		//1.刪除数据
-		PlanList.Remove(planName);
+		SaveDataManager::Get()->saveGame->PlanList.Remove(planName);
 
 		//2.刷新Combobox列表
 		TArray<FString> planNameArr;
-		PlanList.GenerateKeyArray(planNameArr);
+		SaveDataManager::Get()->saveGame->PlanList.GenerateKeyArray(planNameArr);
 		SceneManagerTools->SceneMaterialManager->ResetPlanComboBox(planNameArr);
 
 		//3.刷新底下材质数据为默认第一个
@@ -159,16 +114,16 @@ void MaterialIntermediate::DeleteMatPlan(FString planName)
 void MaterialIntermediate::SelectMatPlan(const FString planName)
 {
 	UE_LOG(LogTemp, Warning, TEXT("SelectMatPlan 000 %s"), *planName);
-	currentPlan = planName;
+	SaveDataManager::Get()->saveGame->DefaultPlan = planName;
 	//1.刷新Combobox列表的默认选项
-	SceneManagerTools->SceneMaterialManager->SetSelectedPlanName(currentPlan);
+	SceneManagerTools->SceneMaterialManager->SetSelectedPlanName(SaveDataManager::Get()->saveGame->DefaultPlan);
 
 	//2.更新下面的材质
 	SceneManagerTools->SceneMaterialManager->ClearMaterialGroup();
-	if (PlanList.Contains(planName))
+	if (SaveDataManager::Get()->saveGame->PlanList.Contains(planName))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("SelectMatPlan %s"), *planName);
-		for (TPair<FString, FMaterialGroupInfo> group : PlanList[planName].GroupList)
+		for (TPair<FString, FMaterialGroupInfo> group : SaveDataManager::Get()->saveGame->PlanList[planName].GroupList)
 		{
 			if (SceneManagerTools->SceneMaterialManager)
 			{
@@ -179,19 +134,17 @@ void MaterialIntermediate::SelectMatPlan(const FString planName)
 }
 
 
-
-
 void MaterialIntermediate::AddMatGroup(FString groupName)
 {
-	if (PlanList.Contains(currentPlan))
+	if (SaveDataManager::Get()->saveGame->PlanList.Contains(SaveDataManager::Get()->saveGame->DefaultPlan))
 	{
-		if (!PlanList[currentPlan].GroupList.Contains(groupName))
+		if (!SaveDataManager::Get()->GetSelectedPlan()->GroupList.Contains(groupName))
 		{
 			//1.添加数据
 			FMaterialGroupInfo groupData;
 			groupData.GroupName = groupName;
-			groupData.Parent = currentPlan;
-			PlanList[currentPlan].GroupList.Emplace(groupData.GroupName, groupData);
+			groupData.Parent = SaveDataManager::Get()->saveGame->DefaultPlan;
+			SaveDataManager::Get()->GetSelectedPlan()->GroupList.Emplace(groupData.GroupName, groupData);
 
 			//2.刷新底下的材质
 			SceneManagerTools->SceneMaterialManager->AddMaterialGroup(groupData);
@@ -209,12 +162,12 @@ void MaterialIntermediate::DeleteMatGroup(TSharedPtr<FMaterialGroupInfo> matInfo
 {
 	FString plan = matInfo->Parent;
 	FString group = matInfo->GroupName;
-	if (PlanList.Contains(plan))
+	if (SaveDataManager::Get()->saveGame->PlanList.Contains(plan))
 	{
-		if (PlanList[plan].GroupList.Contains(group))
+		if (SaveDataManager::Get()->saveGame->PlanList[plan].GroupList.Contains(group))
 		{
 			//1.移除数据
-			PlanList[plan].GroupList.Remove(group);
+			SaveDataManager::Get()->saveGame->PlanList[plan].GroupList.Remove(group);
 
 			//2.刷新UI
 			SceneManagerTools->SceneMaterialManager->DeleteMaterialGroup(matInfo);
@@ -227,71 +180,30 @@ void MaterialIntermediate::DeleteMatGroup(TSharedPtr<FMaterialGroupInfo> matInfo
 
 void MaterialIntermediate::AddMatInstance(TSharedPtr<FMaterialInfo> matInfo)
 {
-
-	if (PlanList.Contains(matInfo->ParentPlan))
-	{
-		if (PlanList[matInfo->ParentPlan].GroupList.Contains(matInfo->ParentGroup))
-		{
-			FMaterialInfo matData;
-			matData.MatPath = matInfo->MatPath;
-			matData.ParentGroup = matInfo->ParentGroup;
-			matData.ParentPlan = matInfo->ParentPlan;
-			matData.ScalarParams = matInfo->ScalarParams;
-			matData.VectorParams = matInfo->VectorParams;
-
-			if (!PlanList[matInfo->ParentPlan].GroupList[matInfo->ParentGroup].MatList.Contains(matInfo->MatPath))
-				PlanList[matInfo->ParentPlan].GroupList[matInfo->ParentGroup].MatList.Emplace(matInfo->MatPath, matData);
-		}
-	}
+	SaveDataManager::Get()->AddMatInstanceData(matInfo);
 }
 
 void MaterialIntermediate::SetMatScalarParam(TSharedPtr<FMaterialInfo> matInfo)
 {
-	FString plan = matInfo->ParentPlan;
-	FString group = matInfo->ParentGroup;
-	FString path = matInfo->MatPath;
-	if (PlanList.Contains(plan))
-	{
-		if (PlanList[plan].GroupList.Contains(group))
-		{
-			if (PlanList[plan].GroupList[group].MatList.Contains(path))
-			{
-				PlanList[plan].GroupList[group].MatList[path] = *matInfo;
-			}
-		}
-	}
+	SaveDataManager::Get()->SetMatScalarParam(matInfo);
 }
 
 
 
 void MaterialIntermediate::DeleteMatInstance(TSharedPtr<FMaterialInfo> matInfo)
 {
-	FString plan = matInfo->ParentPlan;
-	FString group = matInfo->ParentGroup;
-	FString path = matInfo->MatPath;
-	if (PlanList.Contains(plan))
-	{
-		if (PlanList[plan].GroupList.Contains(group))
-		{
-			if (PlanList[plan].GroupList[group].MatList.Contains(path))
-			{
-				PlanList[plan].GroupList[group].MatList.Remove(path);
-			}
-		}
-	}
+	SaveDataManager::Get()->DeleteMatInstanceData(matInfo);
 
 	/*
 	在切换材质球时只需要清空数据
 	在删除材质球时需要调下面的方法
 	*/
-
-
-	if (PlanList.Contains(currentPlan))
+	if (SaveDataManager::Get()->GetSelectedPlan() != nullptr)
 	{
 		SceneManagerTools->SceneMaterialManager->MatGroupItems.Empty();
 		SceneManagerTools->SceneMaterialManager->MatGroupListView->RequestListRefresh();
 
-		for (TPair<FString, FMaterialGroupInfo> groupIt : PlanList[currentPlan].GroupList)
+		for (TPair<FString, FMaterialGroupInfo> groupIt : SaveDataManager::Get()->GetSelectedPlan()->GroupList)
 		{
 			if (SceneManagerTools->SceneMaterialManager)
 			{
@@ -299,25 +211,11 @@ void MaterialIntermediate::DeleteMatInstance(TSharedPtr<FMaterialInfo> matInfo)
 			}
 		}
 	}
-
 }
 
 void MaterialIntermediate::ReplaceMatInstance(TSharedPtr<FMaterialInfo> matInfo, FString originPath)
 {
-	FString plan = matInfo->ParentPlan;
-	FString group = matInfo->ParentGroup;
-	FString path = matInfo->MatPath;
-	if (PlanList.Contains(plan))
-	{
-		if (PlanList[plan].GroupList.Contains(group))
-		{
-			if (PlanList[plan].GroupList[group].MatList.Contains(originPath))
-			{
-				PlanList[plan].GroupList[group].MatList.Remove(originPath);
-			}
-		}
-	}
-
+	SaveDataManager::Get()->ReplaceMatInstanceData(matInfo, originPath);
 	AddMatInstance(matInfo);
 }
 
@@ -327,12 +225,12 @@ void MaterialIntermediate::SelectMaterialInstance(FString newPath, TSharedPtr<FM
 	if (newPath.ToLower() == TEXT("none") && matInfo->MatPath == TEXT(""))
 	{
 		//添加材质后,想删除当前的空材质
-		if (PlanList.Contains(matInfo->ParentPlan))
+		if (SaveDataManager::Get()->saveGame->PlanList.Contains(matInfo->ParentPlan))
 		{
 			SceneManagerTools->SceneMaterialManager->MatGroupItems.Empty();
 			SceneManagerTools->SceneMaterialManager->MatGroupListView->RequestListRefresh();
 
-			for (TPair<FString, FMaterialGroupInfo> groupIt : PlanList[matInfo->ParentPlan].GroupList)
+			for (TPair<FString, FMaterialGroupInfo> groupIt : SaveDataManager::Get()->saveGame->PlanList[matInfo->ParentPlan].GroupList)
 			{
 				if (SceneManagerTools->SceneMaterialManager)
 				{
@@ -345,11 +243,11 @@ void MaterialIntermediate::SelectMaterialInstance(FString newPath, TSharedPtr<FM
 
 
 
-	if (PlanList.Contains(matInfo->ParentPlan))
+	if (SaveDataManager::Get()->IsMaterialPlanExisted(matInfo))
 	{
-		if (PlanList[matInfo->ParentPlan].GroupList.Contains(matInfo->ParentGroup))
+		if (SaveDataManager::Get()->IsMaterialGroupExisted(matInfo))
 		{
-			if (!PlanList[matInfo->ParentPlan].GroupList[matInfo->ParentGroup].MatList.Contains(newPath))
+			if (!SaveDataManager::Get()->GetGroup(matInfo)->MatList.Contains(newPath))
 			{
 				widget->ChangeSelectedMatInstance();
 			}

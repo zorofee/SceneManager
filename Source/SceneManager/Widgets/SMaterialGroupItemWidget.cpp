@@ -11,7 +11,7 @@
 #include "SceneManagerSaveGame.h"
 #include "Materials/MaterialInstanceConstant.h"
 #include "DelegateManager.h"
-
+#include "SaveDataManager.h"
 
 void SMaterialGroupItemEntry::Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialInfo>& InItem)
 {
@@ -34,10 +34,11 @@ void SMaterialGroupItemEntry::Construct(const FArguments& InArgs, const TSharedP
 */
 void SMaterialGroupItemWidget::Construct(const FArguments& InArgs, const TSharedPtr<const FMaterialInfo>& MatInfo)
 {
-	GroupNameSet.Emplace(TEXT("LevelMaterial"));
-	GroupNameSet.Emplace(TEXT("Ref"));
-	GroupNameSet.Emplace(TEXT("辅光"));
-	GroupNameSet.Emplace(TEXT("HSV"));
+	//添加材质分组名称
+	for (size_t i = 0; i < SaveDataManager::Get()->pluginSaveSettings->MatGroupNameList.Num(); i++)
+	{
+		GroupNameSet.Emplace(SaveDataManager::Get()->pluginSaveSettings->MatGroupNameList[i]);
+	}
 
 	SaveMaterialInfo(MatInfo);
 

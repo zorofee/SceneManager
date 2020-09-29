@@ -58,7 +58,7 @@ private:
 public:
 	void SetSelectedPlanName(const FString planName);
 	void ResetPlanComboBox(const TArray<FString> planNameList);
-
+	void CheckBoxChanged(ECheckBoxState newState);
 
 	/*
 		test

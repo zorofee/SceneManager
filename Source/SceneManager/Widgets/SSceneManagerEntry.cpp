@@ -13,6 +13,8 @@
 
 #include "Widgets/Layout/SScrollBox.h"
 
+#include "SaveDataManager.h"
+
 #define LOCTEXT_NAMESPACE "FSceneManagerModule"
 
 
@@ -113,12 +115,12 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 
 					+ SVerticalBox::Slot()
 					[
-						SAssignNew(SceneLightManager, SPlayerLightManager, TEXT("/Game/Materials/Shared/ParameterCollection/MPC_Scene.MPC_Scene"))
+						SAssignNew(SceneLightManager, SPlayerLightManager, SaveDataManager::Get()->pluginSaveSettings->SceneLightMPC)
 					]
 
 					+ SVerticalBox::Slot()
 					[
-						SAssignNew(PlayerLightManager, SPlayerLightManager, TEXT("/Game/Materials/Shared/ParameterCollection/MPC_Character.MPC_Character"))
+						SAssignNew(PlayerLightManager, SPlayerLightManager, SaveDataManager::Get()->pluginSaveSettings->PlayerLightMPC)
 					]
 
 					+ SVerticalBox::Slot()

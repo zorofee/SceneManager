@@ -32,6 +32,7 @@ private:
 	ALight* SelectedLight;
 
 private:
+	void SaveMPCParams();
 	void OnFinishedChangingMainLight(const FPropertyChangedEvent& InEvent);
 	void RefreshLightComboList();
 	void RefreshMPCWidgets();
@@ -45,5 +46,9 @@ private:
 	void AddScalarParam(const FString name, float value);
 	void AddVectorParam(const FString name, FLinearColor value, int32 index);
 	void OnScalarValueChanged(float value, const FString name);
+	void OnScalarValueCommited(float NewValue, ETextCommit::Type CommitType);
 	void OnVectorValueChanged(FLinearColor value, const FString name);
+
+private:
+	FString TempMPCPath;
 };

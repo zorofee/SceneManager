@@ -17,6 +17,4 @@ public:
 
 	void Construct(const FArguments& InArgs);
 
-private:
-	UPluginSaveSettings* pluginSaveSettings;
 };

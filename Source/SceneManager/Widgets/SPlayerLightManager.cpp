@@ -10,10 +10,11 @@
 
 void SPlayerLightManager::Construct(const FArguments& InArgs, const FString MPCPath)
 {
+	TempMPCPath = MPCPath;
 	FDetailsViewArgs DetailsViewArgs(false, false, true, FDetailsViewArgs::HideNameArea, true);
 	DetailsViewArgs.bAllowSearch = false;
 	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-	UMaterialParameterCollection* ParameterCollection = Cast<UMaterialParameterCollection>(StaticLoadObject(UMaterialParameterCollection::StaticClass(), NULL,/* TEXT("/Game/MPC_Player.MPC_Player")*/*MPCPath));
+	UMaterialParameterCollection* ParameterCollection = Cast<UMaterialParameterCollection>(StaticLoadObject(UMaterialParameterCollection::StaticClass(), NULL,*MPCPath));
 
 	if (ParameterCollection != nullptr)
 	{
@@ -29,6 +30,7 @@ void SPlayerLightManager::Construct(const FArguments& InArgs, const FString MPCP
 
 	TSharedRef<IDetailsView> MPCView = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
 	MPCView->SetObject(MPC);
+	
 
 	TSharedRef<IDetailsView> PlayerLightView = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
 	PlayerLightView->OnFinishedChangingProperties().AddRaw(this, &SPlayerLightManager::OnFinishedChangingMainLight);
@@ -165,6 +167,19 @@ void SPlayerLightManager::FindSceneLight(const FString lightName)
 	}
 }
 
+void SPlayerLightManager::SaveMPCParams()
+{
+	FString AssetPath  = TempMPCPath;
+	TArray<FString> splitPath;
+	AssetPath.ParseIntoArray(splitPath, TEXT("."));
+	FString PackagePath = splitPath[0];
+	FString FileName = splitPath[1];
+	FString FilePath = AssetPath.Replace(TEXT("/Game/"), *FPaths::ProjectContentDir()).Replace(*FString::Printf(TEXT(".%s"), *FileName), TEXT(".uasset"));
+	UE_LOG(LogTemp, Warning, TEXT("SaveMaterialInstance %s ,  %s"), *PackagePath, *FilePath);
+	GEngine->Exec(NULL, *FString::Printf(TEXT("OBJ SAVEPACKAGE PACKAGE=\"%s\" FILE=\"%s\" SILENT=true"), *PackagePath, *FilePath));
+}
+
+
 void SPlayerLightManager::OnFinishedChangingMainLight(const FPropertyChangedEvent& InEvent)
 {
 	if (SelectedLight)
@@ -219,7 +234,7 @@ void SPlayerLightManager::AddScalarParam(const FString name, float value)
 		[
 			SNew(SSpinBox<float>)
 			.OnValueChanged(this, &SPlayerLightManager::OnScalarValueChanged, name)
-			//.OnValueCommitted(this, &SPlayerLightManager::OnScalarValueCommitted, name)
+			.OnValueCommitted(this, &SPlayerLightManager::OnScalarValueCommited)
 			.MinValue(0)
 			.MaxValue(1)
 			.Value(value)
@@ -277,7 +292,7 @@ FReply SPlayerLightManager::OnClickColorBlock(const FGeometry& MyGeometry, const
 
 void SPlayerLightManager::OnColorPickerWindowClosed(const TSharedRef<SWindow>& Window)
 {
-
+	SaveMPCParams();
 }
 
 void SPlayerLightManager::OnSetColorFromColorPicker(FLinearColor NewColor, FString name, int32 ColorImageIndex)
@@ -289,7 +304,6 @@ void SPlayerLightManager::OnSetColorFromColorPicker(FLinearColor NewColor, FStri
 
 void SPlayerLightManager::OnScalarValueChanged(float value, const FString name)
 {
-
 	UWorld* World = GEditor->GetEditorWorldContext().World();
 	MPCIns = World->GetParameterCollectionInstance(MPC);
 	for (size_t i = 0; i < MPC->ScalarParameters.Num(); i++)
@@ -301,6 +315,12 @@ void SPlayerLightManager::OnScalarValueChanged(float value, const FString name)
 		}
 	}
 }
+
+void SPlayerLightManager::OnScalarValueCommited(float NewValue, ETextCommit::Type CommitType)
+{
+	SaveMPCParams();
+}
+
 
 void SPlayerLightManager::OnVectorValueChanged(FLinearColor value,const FString name)
 {

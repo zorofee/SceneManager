@@ -18,11 +18,8 @@ public:
 
 	void Construct(const FArguments& InArgs);
 
-//private:
-	//class ULevelPostProcessSettings* m_pps;
-
 public:
-	void RefreshContentList(/*FPostProcessSettings& PPS*/);
+	void RefreshContentList();
 
 	void OnFinishedChangingProperties(const FPropertyChangedEvent& InEvent);
 
@@ -30,21 +27,27 @@ public:
 
 	void GetScenePostProcessVolume();
 
-	void SetScenePostProcessVolume();
 
 	void GetPostProcessParams(APostProcessVolume& Volume);
 
 	void SetPostProcessParams(APostProcessVolume& Volume);
+	//void SetPostProcessParams(TSharedRef<APostProcessVolume> Volume);
 
 
-	TSharedRef<SWidget> GenerateSourceComboItem(TSharedPtr<FString> InItem);
-	void HandleSourceComboChanged(TSharedPtr<FString> Item, ESelectInfo::Type SelectInfo);
-	void OnComboBoxOpening();
-	void RefreshPostProcessComboList();
 
+private:
+	//combobox
 	TSharedPtr<SComboBox<TSharedPtr<FString>>> PostProcessComboBox;
 	TArray<TSharedPtr<FString>> SourceComboList;
 	TSharedPtr<STextBlock> ComboBoxSelectedText;
 
+	TSharedRef<SWidget> GenerateSourceComboItem(TSharedPtr<FString> InItem);
+	void HandleSourceComboChanged(TSharedPtr<FString> Item, ESelectInfo::Type SelectInfo);
+	void RefreshPostProcessComboList();
+	void OnComboBoxOpening();
+
+private:
+	
+	APostProcessVolume* SelectedPostProcess;
 
 };

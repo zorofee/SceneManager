@@ -10,7 +10,7 @@ void SPostProcessManager::Construct(const FArguments& InArgs)
 {
 }
 
-void SPostProcessManager::RefreshContentList(/*FPostProcessSettings& PPS*/)
+void SPostProcessManager::RefreshContentList()
 {
 	FDetailsViewArgs DetailsViewArgs(false, false, true, FDetailsViewArgs::HideNameArea, true);
 	DetailsViewArgs.bAllowSearch = false;
@@ -65,7 +65,10 @@ void SPostProcessManager::RefreshContentList(/*FPostProcessSettings& PPS*/)
 
 void SPostProcessManager::OnFinishedChangingProperties(const FPropertyChangedEvent& InEvent)
 {
-	SetScenePostProcessVolume();
+	if (SelectedPostProcess != nullptr)
+	{
+		SetPostProcessParams(*SelectedPostProcess);
+	}
 }
 
 void SPostProcessManager::GetScenePostProcessVolume()
@@ -76,6 +79,7 @@ void SPostProcessManager::GetScenePostProcessVolume()
 
 	UGameplayStatics::GetAllActorsOfClass(World, APostProcessVolume::StaticClass(), actorList);
 	UE_LOG(LogTemp, Warning, TEXT("Actor num is %d"), actorList.Num());
+	
 	for (size_t i = 0; i < actorList.Num(); i++)
 	{
 		APostProcessVolume* PostProcessVolume = Cast<APostProcessVolume>(actorList[i]);
@@ -83,32 +87,26 @@ void SPostProcessManager::GetScenePostProcessVolume()
 		FString selectedName = *PostProcessComboBox->GetSelectedItem().Get();
 		if (ppName.Equals(selectedName))
 		{
+			SelectedPostProcess = PostProcessVolume;
 			GetPostProcessParams(*PostProcessVolume);
 		}
 	}
 }
 
 
-void SPostProcessManager::SetScenePostProcessVolume()
-{
-	TArray<AActor*> actorList;
-	UWorld* World = GEditor->GetEditorWorldContext().World();
-	ULevel* Level = World->GetCurrentLevel();
-
-	UGameplayStatics::GetAllActorsOfClass(World, APostProcessVolume::StaticClass(), actorList);
-	UE_LOG(LogTemp, Warning, TEXT("Actor num is %d"), actorList.Num());
-	for (size_t i = 0; i < actorList.Num(); i++)
-	{
-		APostProcessVolume* PostProcessVolume = Cast<APostProcessVolume>(actorList[i]);
-		SetPostProcessParams(*PostProcessVolume);
-	}
-}
 
 void SPostProcessManager::SetPostProcessParams(APostProcessVolume& Volume)
 {
+	if (!Volume.IsValidLowLevel())
+	{
+		UE_LOG(LogTemp,Warning,TEXT("Post process is not valid"));
+		return;
+	}
+
+	
 	UE_LOG(LogTemp, Warning, TEXT("UpdatePostProcessVolumeParams :  %s"), *Volume.GetName());
 
-
+	
 	//bloom
 	Volume.Settings.BloomMethod = Setting->BloomMethod;
 	Volume.Settings.BloomIntensity = Setting->BloomIntensity;

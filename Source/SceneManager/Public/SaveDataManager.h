@@ -52,7 +52,7 @@ public:
 
 	UPluginSaveSettings* pluginSaveSettings;
 
-	ULevelPostProcessSettings* Setting;
+	ULevelPostProcessSettings* PostProcessSetting;
 
 	bool bAllowCopySelectedPlan;
 

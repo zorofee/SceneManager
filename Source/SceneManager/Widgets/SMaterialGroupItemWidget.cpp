@@ -149,6 +149,8 @@ void SMaterialGroupItemWidget::ChangeSelectedMatInstance()
 
 TSharedRef<SHorizontalBox> SMaterialGroupItemWidget::GetScalarParamSlot(FString name , float value)
 {
+	float slideMin = ScalarParamsMin.Contains(name) ? ScalarParamsMin[name] : 0;
+	float slideMax = ScalarParamsMax.Contains(name) ? ScalarParamsMax[name] : slideMin + 1;
 	return
 		SNew(SHorizontalBox)
 
@@ -175,8 +177,8 @@ TSharedRef<SHorizontalBox> SMaterialGroupItemWidget::GetScalarParamSlot(FString 
 		SNew(SSpinBox<float>)
 		.OnValueChanged(this, &SMaterialGroupItemWidget::OnScalarValueChanged, name)
 		.OnValueCommitted(this, &SMaterialGroupItemWidget::OnScalarValueCommitted, name)
-		.MinValue(0)
-		.MaxValue(1)
+		.MinValue(slideMin)
+		.MaxValue(slideMax)
 		.Value(value)
 		];
 
@@ -300,6 +302,8 @@ void SMaterialGroupItemWidget::AnalysisMaterialParamsAndPath()
 {
 	ParamContainer.Get()->ClearChildren();
 	ColorImageArray.Empty();
+	ScalarParamsMin.Empty();
+	ScalarParamsMax.Empty();
 
 	TMap<FString, float> TempScalarParams;
 	TMap<FString, FLinearColor> TempVectorParams;
@@ -327,6 +331,12 @@ void SMaterialGroupItemWidget::AnalysisMaterialParamsAndPath()
 				ParamName = ParameterInfo[i].Name.ToString();
 				Material->GetScalarParameterValue(ParameterInfo[i], ScalarValue);
 				TempScalarParams.Emplace(ParamName, ScalarValue);
+
+				float sliderMin;
+				float sliderMax;
+				Material->GetScalarParameterSliderMinMax(ParameterInfo[i], sliderMin, sliderMax);
+				ScalarParamsMin.Emplace(ParamName, sliderMin);
+				ScalarParamsMax.Emplace(ParamName, sliderMax);
 			}
 		}
 

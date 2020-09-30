@@ -10,7 +10,7 @@
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Input/SCheckBox.h"
 #include "SaveDataManager.h"
-
+#include "SWidgetTreasureBox.h"
 
 void SSceneMaterialManager::Construct(const FArguments& InArgs)
 {
@@ -27,7 +27,10 @@ void SSceneMaterialManager::Construct(const FArguments& InArgs)
 		+ SVerticalBox::Slot()
 		.AutoHeight()
 		[
-			SNew(SHorizontalBox)
+			SNew(SPlanDropList)
+			.Type(EPlanListType::Material)
+
+			/*SNew(SHorizontalBox)
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
 			[
@@ -50,7 +53,7 @@ void SSceneMaterialManager::Construct(const FArguments& InArgs)
 			.Padding(20, 0, 0, 0)
 			[
 				SNew(SCheckBox)
-				.OnCheckStateChanged_Raw(this, &SSceneMaterialManager::CheckBoxChanged)
+				.OnCheckStateChanged(this, &SSceneMaterialManager::CheckBoxChanged)
 				.IsChecked(ECheckBoxState::Unchecked)
 				[
 					SNew(STextBlock)
@@ -58,7 +61,7 @@ void SSceneMaterialManager::Construct(const FArguments& InArgs)
 				]
 
 				
-			]
+			]*/
 		]
 
 		//层名称

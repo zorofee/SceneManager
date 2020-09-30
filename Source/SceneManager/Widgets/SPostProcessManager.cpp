@@ -6,6 +6,8 @@
 #include "Engine/Scene.h"
 #include "Widgets/Input/SComboBox.h"
 #include "SaveDataManager.h"
+#include "SWidgetTreasureBox.h"
+#include "DelegateManager.h"
 
 void SPostProcessManager::Construct(const FArguments& InArgs)
 {
@@ -25,6 +27,17 @@ void SPostProcessManager::RefreshContentList()
 	ChildSlot
 	[
 		SNew(SVerticalBox)
+		
+
+		//选择层
+		+SVerticalBox::Slot()
+		.AutoHeight()
+		[
+			SNew(SPlanDropList)
+			.Type(EPlanListType::PostProcess)
+			.OnAddPlan(this,&SPostProcessManager::OnAddPlan)
+		]
+
 
 		+SVerticalBox::Slot()
 		.AutoHeight()
@@ -113,7 +126,10 @@ void SPostProcessManager::GetPostProcessParams(APostProcessVolume& Volume)
 	SaveDataManager::Get()->PostProcessSetting->Setting = Volume.Settings;
 }
 
-
+void SPostProcessManager::GetPostProcessParams(FPostProcessSettings setting)
+{
+	SaveDataManager::Get()->PostProcessSetting->Setting = setting;
+}
 
 
 TSharedRef<SWidget> SPostProcessManager::GenerateSourceComboItem(TSharedPtr<FString> InItem)
@@ -152,4 +168,11 @@ void SPostProcessManager::RefreshPostProcessComboList()
 	{
 		SourceComboList.Emplace(MakeShareable(new FString(actorList[i]->GetName())));
 	}
+}
+
+
+FReply SPostProcessManager::OnAddPlan()
+{
+	UE_LOG(LogTemp,Warning,TEXT("Post process manager add plan"));
+	return FReply::Handled();
 }

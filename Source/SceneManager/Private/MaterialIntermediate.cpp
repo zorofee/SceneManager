@@ -44,6 +44,9 @@ void MaterialIntermediate::AddEventListener()
 	if (!DelegateManager::Get()->PopupMsgDialog.IsBound())
 		DelegateManager::Get()->PopupMsgDialog.AddRaw(this, &MaterialIntermediate::PopupMsgDialog);
 
+	if (!DelegateManager::Get()->AddPostProcessPlan.IsBound())
+		DelegateManager::Get()->AddPostProcessPlan.AddRaw(this, &MaterialIntermediate::AddPostProcessPlan);
+
 }
 
 
@@ -58,6 +61,16 @@ void MaterialIntermediate::LoadSceneManagerTools()
 }
 
 
+void MaterialIntermediate::AddPostProcessPlan(const FString planName)
+{
+	if (!SaveDataManager::Get()->saveGame->PostProcessList.Contains(planName))
+	{
+		UE_LOG(LogTemp,Warning,TEXT("AddPostProcessPlan %s"),*planName);
+		FPostProcessSettings planData;
+		SaveDataManager::Get()->saveGame->PostProcessList.Emplace(planName, planData);
+		SceneManagerTools->PostProcessManager->GetPostProcessParams(planData);
+	}
+}
 
 void MaterialIntermediate::AddMatPlan(FString planName)
 {
@@ -265,3 +278,4 @@ void MaterialIntermediate::PopupMsgDialog(const FString content)
 	FText Title = FText::FromString("Warning");
 	FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(*content), &Title);
 }
+

@@ -45,5 +45,9 @@ public:
 	void SelectMaterialInstance(FString newPath, TSharedPtr<FMaterialInfo> matInfo,  SMaterialGroupItemWidget* widget);
 
 
+public:
+	//post process
+	void AddPostProcessPlan(const FString planName);
+
 
 };

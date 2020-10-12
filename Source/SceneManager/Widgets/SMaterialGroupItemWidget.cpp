@@ -323,7 +323,7 @@ void SMaterialGroupItemWidget::AnalysisMaterialParamsAndPath()
 		{
 			FName groupName;
 			Material->GetGroupName(ParameterInfo[i], groupName);
-			UE_LOG(LogTemp, Warning, TEXT("Group name is %s , %s"), *groupName.ToString(), *ParameterInfo[i].Name.ToString());
+			//UE_LOG(LogTemp, Warning, TEXT("Group name is %s , %s"), *groupName.ToString(), *ParameterInfo[i].Name.ToString());
 
 			GroupName = groupName.ToString();
 			if (GroupNameSet.Contains(GroupName))

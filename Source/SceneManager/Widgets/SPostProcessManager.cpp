@@ -30,17 +30,19 @@ void SPostProcessManager::RefreshContentList()
 		
 
 		//选择层
+		/*
 		+SVerticalBox::Slot()
 		.AutoHeight()
 		[
 			SNew(SPlanDropList)
 			.Type(EPlanListType::PostProcess)
-			.OnAddPlan(this,&SPostProcessManager::OnAddPlan)
+			//.OnAddPlan(this,&SPostProcessManager::OnAddPlan)
 		]
-
+		*/
 
 		+SVerticalBox::Slot()
 		.AutoHeight()
+		.Padding(0,20,0,0)
 		[
 			SNew(SHorizontalBox)
 

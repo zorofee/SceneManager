@@ -221,7 +221,7 @@ void SSceneMaterialManager::SetSelectedPlanName(const FString planName)
 {
 	for (size_t i = 0; i < SourceComboList.Num(); i++)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("SetSelectedPlanName %s"), *planName);
+		//UE_LOG(LogTemp, Warning, TEXT("SetSelectedPlanName %s"), *planName);
 		if (*SourceComboList[i] == planName)
 		{
 			PlanComboBox->SetSelectedItem(SourceComboList[i]);

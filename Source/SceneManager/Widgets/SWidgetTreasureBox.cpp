@@ -83,3 +83,5 @@ void SPlanDropList::CheckBoxChanged(ECheckBoxState newState)
 		SaveDataManager::Get()->bAllowCopySelectedPlan = newState == ECheckBoxState::Checked ? true : false;
 	}
 }
+
+

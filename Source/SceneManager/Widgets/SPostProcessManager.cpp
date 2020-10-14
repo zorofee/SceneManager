@@ -30,7 +30,7 @@ void SPostProcessManager::RefreshContentList()
 		
 
 		//选择层
-		/*
+		
 		+SVerticalBox::Slot()
 		.AutoHeight()
 		[
@@ -38,7 +38,7 @@ void SPostProcessManager::RefreshContentList()
 			.Type(EPlanListType::PostProcess)
 			//.OnAddPlan(this,&SPostProcessManager::OnAddPlan)
 		]
-		*/
+		
 
 		+SVerticalBox::Slot()
 		.AutoHeight()

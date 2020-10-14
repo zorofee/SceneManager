@@ -34,6 +34,8 @@ public:
 	UPROPERTY()
 		FString SceneLightMPC;
 
+	UPROPERTY()
+		FString WindMPC;
 
 
 	UPROPERTY()

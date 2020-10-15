@@ -22,4 +22,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "全局参数", meta = (DisplayName = "场景灯光全局参数"))
 		FString SceneLightMPC;
+
+	UPROPERTY(EditAnywhere, Category = "全局参数", meta = (DisplayName = "风全局参数"))
+		FString WindMPC;
 };

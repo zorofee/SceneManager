@@ -48,13 +48,15 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 	Category.UniqueHandle = FName(TEXT("PostProcess"));
 	Categories.Emplace(Category);
 
+	Category.DisplayName = FText::FromString(FString::Printf(TEXT("Wind")));
+	Category.UniqueHandle = FName(TEXT("Wind"));
+	Categories.Emplace(Category);
+
 	Category.DisplayName = FText::FromString(FString::Printf(TEXT("Settings")));
 	Category.UniqueHandle = FName(TEXT("Settings"));
 	Categories.Emplace(Category);
 
-	//Category.DisplayName = FText::FromString(FString::Printf(TEXT("Wind")));
-	//Category.UniqueHandle = FName(TEXT("Wind"));
-	//Categories.Emplace(Category);
+
 
 	//Category.DisplayName = FText::FromString(FString::Printf(TEXT("Weather")));
 	//Category.UniqueHandle = FName(TEXT("Weather"));
@@ -121,6 +123,11 @@ void SSceneManagerTools::Construct(const FArguments& InArgs)
 					+ SVerticalBox::Slot()
 					[
 						SAssignNew(PlayerLightManager, SPlayerLightManager, SaveDataManager::Get()->pluginSaveSettings->PlayerLightMPC)
+					]
+
+					+ SVerticalBox::Slot()
+					[
+						SAssignNew(WindManager, SMPCManager, SaveDataManager::Get()->pluginSaveSettings->WindMPC)
 					]
 
 					+ SVerticalBox::Slot()
@@ -204,6 +211,7 @@ void SSceneManagerTools::SelectManagerContainer(FString ContainerName)
 		PostProcessManager->SetVisibility(EVisibility::Collapsed);
 		PlayerLightManager->SetVisibility(EVisibility::Collapsed);
 		SceneLightManager->SetVisibility(EVisibility::Collapsed);
+		WindManager->SetVisibility(EVisibility::Collapsed);
 		SettingManager->SetVisibility(EVisibility::Collapsed);
 	}
 	else if (ContainerName == "PostProcess")
@@ -212,6 +220,7 @@ void SSceneManagerTools::SelectManagerContainer(FString ContainerName)
 		SceneMaterialManager->SetVisibility(EVisibility::Collapsed);
 		PlayerLightManager->SetVisibility(EVisibility::Collapsed);
 		SceneLightManager->SetVisibility(EVisibility::Collapsed);
+		WindManager->SetVisibility(EVisibility::Collapsed);
 		SettingManager->SetVisibility(EVisibility::Collapsed);
 	}
 	else if (ContainerName == "SceneLight")
@@ -220,6 +229,7 @@ void SSceneManagerTools::SelectManagerContainer(FString ContainerName)
 		SceneMaterialManager->SetVisibility(EVisibility::Collapsed);
 		PlayerLightManager->SetVisibility(EVisibility::Collapsed);
 		SceneLightManager->SetVisibility(EVisibility::Visible);
+		WindManager->SetVisibility(EVisibility::Collapsed);
 		SettingManager->SetVisibility(EVisibility::Collapsed);
 	}
 	else if (ContainerName == "PlayerLight")
@@ -228,6 +238,16 @@ void SSceneManagerTools::SelectManagerContainer(FString ContainerName)
 		SceneMaterialManager->SetVisibility(EVisibility::Collapsed);
 		PlayerLightManager->SetVisibility(EVisibility::Visible);
 		SceneLightManager->SetVisibility(EVisibility::Collapsed);
+		WindManager->SetVisibility(EVisibility::Collapsed);
+		SettingManager->SetVisibility(EVisibility::Collapsed);
+	}
+	else if (ContainerName == "Wind")
+	{
+		PostProcessManager->SetVisibility(EVisibility::Collapsed);
+		SceneMaterialManager->SetVisibility(EVisibility::Collapsed);
+		PlayerLightManager->SetVisibility(EVisibility::Collapsed);
+		SceneLightManager->SetVisibility(EVisibility::Collapsed);
+		WindManager->SetVisibility(EVisibility::Visible);
 		SettingManager->SetVisibility(EVisibility::Collapsed);
 	}
 	else if (ContainerName == "Settings")
@@ -236,6 +256,7 @@ void SSceneManagerTools::SelectManagerContainer(FString ContainerName)
 		SceneMaterialManager->SetVisibility(EVisibility::Collapsed);
 		PlayerLightManager->SetVisibility(EVisibility::Collapsed);
 		SceneLightManager->SetVisibility(EVisibility::Collapsed);
+		WindManager->SetVisibility(EVisibility::Collapsed);
 		SettingManager->SetVisibility(EVisibility::Visible);
 	}
 	else
@@ -244,6 +265,7 @@ void SSceneManagerTools::SelectManagerContainer(FString ContainerName)
 		SceneMaterialManager->SetVisibility(EVisibility::Collapsed);
 		PlayerLightManager->SetVisibility(EVisibility::Collapsed);
 		SceneLightManager->SetVisibility(EVisibility::Collapsed);
+		WindManager->SetVisibility(EVisibility::Collapsed);
 		SettingManager->SetVisibility(EVisibility::Collapsed);
 	}
 }

@@ -34,6 +34,19 @@ public:
 	UPROPERTY()
 		FString SceneLightMPC;
 
+	UPROPERTY()
+		FString WindMPC;
+
+
+	UPROPERTY()
+		FPostProcessSettings PostProcessSetting;
+
+	UPROPERTY()
+		FString DefaultPostProcessName;
+
+	UPROPERTY()
+		TMap<FString, FPostProcessSettings> PostProcessList;
+
 };
 
 

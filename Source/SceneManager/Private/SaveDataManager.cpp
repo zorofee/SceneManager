@@ -30,11 +30,12 @@ void SaveDataManager::LoadData()
 	pluginSaveSettings->MatGroupNameList = saveGame->MatGroupNameList;
 	pluginSaveSettings->PlayerLightMPC = saveGame->PlayerLightMPC;
 	pluginSaveSettings->SceneLightMPC = saveGame->SceneLightMPC;
+	pluginSaveSettings->WindMPC = saveGame->WindMPC;
 
 
-	Setting = NewObject<ULevelPostProcessSettings>();
-	Setting->AddToRoot();
-
+	PostProcessSetting = NewObject<ULevelPostProcessSettings>();
+	PostProcessSetting->AddToRoot();
+	PostProcessSetting->Setting = saveGame->PostProcessSetting;
 }
 
 void SaveDataManager::SaveData()
@@ -42,6 +43,8 @@ void SaveDataManager::SaveData()
 	saveGame->MatGroupNameList = pluginSaveSettings->MatGroupNameList;
 	saveGame->PlayerLightMPC = pluginSaveSettings->PlayerLightMPC;
 	saveGame->SceneLightMPC = pluginSaveSettings->SceneLightMPC;
+	saveGame->WindMPC = pluginSaveSettings->WindMPC;
+	saveGame->PostProcessSetting = PostProcessSetting->Setting;
 	UGameplayStatics::SaveGameToSlot(saveGame, TEXT("TestSlot"), 0);
 }
 

@@ -2,6 +2,7 @@
 
 #pragma once
 #include "SSettingManager.h"
+#include "SMPCManager.h"
 #include "SSceneLightManager.h"
 #include "SPlayerLightManager.h"
 #include "SPostProcessManager.h"
@@ -32,6 +33,7 @@ public:
 //	TSharedPtr<SSceneLightManager> SceneLightManager;
 	TSharedPtr<SPlayerLightManager> PlayerLightManager;
 	TSharedPtr<SPlayerLightManager> SceneLightManager;
+	TSharedPtr<SMPCManager> WindManager;
 	TSharedPtr<SSettingManager> SettingManager;
 private:
 	FName ActiveTabName;

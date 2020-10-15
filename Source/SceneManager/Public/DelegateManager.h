@@ -19,8 +19,10 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(ReplaceSceneMatInstanceEvent, TSharedPtr<FM
 
 DECLARE_MULTICAST_DELEGATE_ThreeParams(SelectMaterialInstanceEvent,FString, TSharedPtr<FMaterialInfo>, SMaterialGroupItemWidget*)
 
-
 DECLARE_MULTICAST_DELEGATE_OneParam(PopupMsgDialogEvent, const FString)
+
+DECLARE_MULTICAST_DELEGATE_OneParam(AddPostProcessPlanEvent,const FString)
+
 
 /**
  * 
@@ -59,4 +61,5 @@ public:
 
 	PopupMsgDialogEvent PopupMsgDialog;
 
+	AddPostProcessPlanEvent AddPostProcessPlan;
 };

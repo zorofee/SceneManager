@@ -25,11 +25,13 @@ public:
 
 	void GetScenePostProcessVolume();
 
+	void GetPostProcessParams(FPostProcessSettings setting);
+
 	void GetPostProcessParams(APostProcessVolume& Volume);
 
 	void SetPostProcessParams(APostProcessVolume& Volume);
 
-
+	FReply OnAddPlan();
 private:
 	//combobox
 	TSharedPtr<SComboBox<TSharedPtr<FString>>> PostProcessComboBox;
